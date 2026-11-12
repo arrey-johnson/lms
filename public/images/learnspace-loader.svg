@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="72" viewBox="0 0 280 72" fill="none">
+  <style>
+    .word { font-family: Georgia, 'Times New Roman', serif; font-size: 42px; font-weight: 600; }
+    .learn { fill: #0f172a; }
+    .space { fill: #1d4ed8; }
+    .dot {
+      fill: #1d4ed8;
+      animation: bounce 1s ease-in-out infinite;
+    }
+    .d2 { animation-delay: 0.15s; }
+    .d3 { animation-delay: 0.3s; }
+    .brand {
+      animation: pulse 1.4s ease-in-out infinite;
+      transform-origin: 120px 28px;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.55; }
+      50% { opacity: 1; }
+    }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+      40% { transform: translateY(-6px); opacity: 1; }
+    }
+  </style>
+  <g class="brand">
+    <text x="16" y="40" class="word learn">Learn</text>
+    <text x="128" y="40" class="word space">Space</text>
+  </g>
+  <circle class="dot" cx="122" cy="58" r="3.5"/>
+  <circle class="dot d2" cx="136" cy="58" r="3.5"/>
+  <circle class="dot d3" cx="150" cy="58" r="3.5"/>
+</svg>
