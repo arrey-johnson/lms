@@ -8,9 +8,9 @@ import { SiteFooter } from "@/components/site-footer";
 export default function HomePage() {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[radial-gradient(circle_at_18%_15%,#dbeafe_0%,transparent_40%),radial-gradient(circle_at_85%_0%,#eff6ff_0%,transparent_35%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] dark:bg-[radial-gradient(circle_at_18%_15%,#1e3a8a_0%,transparent_40%),radial-gradient(circle_at_85%_0%,#172554_0%,transparent_35%),linear-gradient(180deg,#020617_0%,#0f172a_100%)]">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6">
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-6">
         <BrandLogo href="/" size="lg" />
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <ThemeToggle />
           <Link
             href="/login"
