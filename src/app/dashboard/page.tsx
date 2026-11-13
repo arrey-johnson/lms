@@ -66,15 +66,13 @@ export default async function StudentDashboardPage() {
     })
   );
 
-  const studentNav = [
-    { href: "/dashboard", label: "My courses" },
-    { href: "/settings", label: "Settings" },
-  ];
+  const studentNav = [{ href: "/dashboard", label: "My courses" }];
 
   return (
     <AppShell
       brandHref="/dashboard"
       userLabel={profile.full_name || profile.email || "Student"}
+      avatarUrl={profile.avatar_url}
       nav={studentNav}
     >
       <div className="space-y-10">

@@ -95,18 +95,15 @@ export default async function CoursePage({
     <AppShell
       brandHref={isAdmin ? "/admin" : "/dashboard"}
       userLabel={profile.full_name || profile.email || "Student"}
+      avatarUrl={profile.avatar_url}
       nav={
         isAdmin
           ? [
               { href: "/admin", label: "Overview" },
               { href: "/admin/courses", label: "Courses" },
               { href: "/admin/students", label: "Students" },
-              { href: "/settings", label: "Settings" },
             ]
-          : [
-              { href: "/dashboard", label: "My courses" },
-              { href: "/settings", label: "Settings" },
-            ]
+          : [{ href: "/dashboard", label: "My courses" }]
       }
     >
       <CoursePlayer

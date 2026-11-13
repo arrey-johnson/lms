@@ -12,11 +12,11 @@ export default async function AdminLayout({
     <AppShell
       brandHref="/admin"
       userLabel={profile.full_name || profile.email || "Admin"}
+      avatarUrl={profile.avatar_url}
       nav={[
         { href: "/admin", label: "Overview" },
         { href: "/admin/courses", label: "Courses" },
         { href: "/admin/students", label: "Students" },
-        { href: "/settings", label: "Settings" },
       ]}
     >
       {children}
