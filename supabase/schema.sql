@@ -54,6 +54,17 @@ create table if not exists public.progress (
   unique(user_id, module_id)
 );
 
+-- Email confirmation OTPs (sent via Zoho from hello@promptstacktechnologies.com)
+create table if not exists public.email_otps (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  email text not null,
+  code_hash text not null,
+  expires_at timestamptz not null,
+  consumed_at timestamptz,
+  created_at timestamptz default now()
+);
+
 -- Indexes
 create index if not exists modules_course_id_idx on public.modules(course_id);
 create index if not exists modules_order_idx on public.modules(course_id, order_index);
@@ -61,6 +72,8 @@ create index if not exists enrollments_user_id_idx on public.enrollments(user_id
 create index if not exists enrollments_course_id_idx on public.enrollments(course_id);
 create index if not exists progress_user_id_idx on public.progress(user_id);
 create index if not exists progress_module_id_idx on public.progress(module_id);
+create index if not exists email_otps_email_idx on public.email_otps (email);
+create index if not exists email_otps_user_id_idx on public.email_otps (user_id);
 
 -- Helper: check if current user is admin
 create or replace function public.is_admin()
@@ -124,6 +137,7 @@ alter table public.courses enable row level security;
 alter table public.modules enable row level security;
 alter table public.enrollments enable row level security;
 alter table public.progress enable row level security;
+alter table public.email_otps enable row level security;
 
 -- Profiles policies
 drop policy if exists "Users can view own profile" on public.profiles;

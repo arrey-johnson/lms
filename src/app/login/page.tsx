@@ -6,7 +6,12 @@ import { SiteFooter } from "@/components/site-footer";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string }>;
+  searchParams: Promise<{
+    next?: string;
+    error?: string;
+    email?: string;
+    verified?: string;
+  }>;
 }) {
   const params = await searchParams;
   const initialError =
@@ -29,7 +34,12 @@ export default async function LoginPage({
             Welcome back to your AI-powered learning space.
           </p>
           <div className="mt-6">
-            <LoginForm next={params.next} initialError={initialError} />
+            <LoginForm
+              next={params.next}
+              initialError={initialError}
+              initialEmail={params.email}
+              verified={params.verified === "1"}
+            />
           </div>
         </div>
       </div>

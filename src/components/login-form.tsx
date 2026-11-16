@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { loginAction } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +12,15 @@ import { Label } from "@/components/ui/label";
 export function LoginForm({
   next,
   initialError,
+  initialEmail,
+  verified,
 }: {
   next?: string;
   initialError?: string;
+  initialEmail?: string;
+  verified?: boolean;
 }) {
+  const router = useRouter();
   const [error, setError] = useState(initialError || "");
   const [pending, startTransition] = useTransition();
 
@@ -25,11 +31,22 @@ export function LoginForm({
         setError("");
         startTransition(async () => {
           const result = await loginAction(formData);
+          if (result?.needsVerification && result.email) {
+            router.push(
+              `/verify-email?email=${encodeURIComponent(result.email)}`
+            );
+            return;
+          }
           if (result?.error) setError(result.error);
         });
       }}
     >
       {next ? <input type="hidden" name="next" value={next} /> : null}
+      {verified ? (
+        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+          Email confirmed. You can sign in now.
+        </p>
+      ) : null}
       <div>
         <Label htmlFor="email">Email</Label>
         <Input
@@ -38,6 +55,7 @@ export function LoginForm({
           type="email"
           autoComplete="email"
           required
+          defaultValue={initialEmail || ""}
           placeholder="you@email.com"
         />
       </div>

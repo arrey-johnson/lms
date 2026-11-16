@@ -30,7 +30,6 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isAuthPage = pathname === "/login" || pathname === "/signup";
   const isAdminRoute = pathname.startsWith("/admin");
   const isProtectedStudentRoute =
     pathname.startsWith("/dashboard") ||
@@ -61,7 +60,7 @@ export async function updateSession(request: NextRequest) {
 
     const role = profile?.role ?? "student";
 
-    if (isAuthPage) {
+    if (pathname === "/login" || pathname === "/signup") {
       const url = request.nextUrl.clone();
       url.pathname = role === "admin" ? "/admin" : "/dashboard";
       return NextResponse.redirect(url);

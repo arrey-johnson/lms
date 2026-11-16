@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { signupAction } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +10,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 
 export function SignupForm() {
+  const router = useRouter();
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
 
   return (
@@ -18,14 +19,17 @@ export function SignupForm() {
       className="space-y-4"
       action={(formData) => {
         setError("");
-        setMessage("");
         startTransition(async () => {
           const result = await signupAction(formData);
-          if (result?.error) {
-            setError(result.error);
+          if (result?.needsVerification && result.email) {
+            router.push(
+              `/verify-email?email=${encodeURIComponent(result.email)}`
+            );
             return;
           }
-          if (result?.message) setMessage(result.message);
+          if (result?.error) {
+            setError(result.error);
+          }
         });
       }}
     >
@@ -74,11 +78,6 @@ export function SignupForm() {
       {error ? (
         <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300">
           {error}
-        </p>
-      ) : null}
-      {message ? (
-        <p className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800 dark:bg-blue-950 dark:text-blue-200">
-          {message}
         </p>
       ) : null}
       <Button type="submit" className="w-full" size="lg" disabled={pending}>
