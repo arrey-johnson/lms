@@ -22,9 +22,9 @@ export function SignupForm() {
         startTransition(async () => {
           const result = await signupAction(formData);
           if (result?.needsVerification && result.email) {
-            router.push(
-              `/verify-email?email=${encodeURIComponent(result.email)}`
-            );
+            const params = new URLSearchParams({ email: result.email });
+            if (result.error) params.set("mailError", result.error);
+            router.push(`/verify-email?${params.toString()}`);
             return;
           }
           if (result?.error) {

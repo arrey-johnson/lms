@@ -7,10 +7,11 @@ import { VerifyEmailForm } from "@/components/verify-email-form";
 export default async function VerifyEmailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; mailError?: string }>;
 }) {
   const params = await searchParams;
   const email = (params.email || "").trim().toLowerCase();
+  const mailError = (params.mailError || "").trim();
 
   return (
     <div className="flex min-h-screen flex-col bg-[radial-gradient(ellipse_at_top,_#dbeafe_0%,transparent_45%),linear-gradient(180deg,#ffffff,#f8fafc)] dark:bg-[radial-gradient(ellipse_at_top,_#1e3a8a_0%,transparent_40%),linear-gradient(180deg,#020617,#020617)]">
@@ -27,6 +28,12 @@ export default async function VerifyEmailPage({
             Enter the 6-digit code from Promptstack Technologies
             (hello@promptstacktechnologies.com).
           </p>
+          {mailError ? (
+            <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+              We couldn&apos;t send the email yet: {mailError}. Use Resend after
+              the mail setup is fixed.
+            </p>
+          ) : null}
           <div className="mt-6">
             {email ? (
               <VerifyEmailForm email={email} />

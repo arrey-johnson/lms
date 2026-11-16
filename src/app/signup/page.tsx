@@ -16,8 +16,8 @@ export default function SignupPage() {
             Create your account
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Join LearnSpace and start building in-demand skills with AI-powered
-            learning.
+            Join Promptstack Classroom and start building in-demand skills with
+            AI-powered learning.
           </p>
           <div className="mt-6">
             <SignupForm />

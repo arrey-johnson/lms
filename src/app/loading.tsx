@@ -1,5 +1,5 @@
 import { RouteLoading } from "@/components/route-loading";
 
 export default function Loading() {
-  return <RouteLoading label="Loading LearnSpace…" />;
+  return <RouteLoading label="Loading Promptstack Classroom…" />;
 }

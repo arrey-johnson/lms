@@ -30,7 +30,8 @@ export default async function SettingsPage() {
             Profile & settings
           </h1>
           <p className="mt-1 text-slate-500">
-            Personalize your LearnSpace identity and keep your account secure.
+            Personalize your Promptstack Classroom identity and keep your
+            account secure.
           </p>
         </div>
 

@@ -222,7 +222,7 @@ export function PasswordSettingsForm() {
             Password
           </h2>
           <p className="text-sm text-slate-500">
-            Keep your LearnSpace account secure.
+            Keep your Promptstack Classroom account secure.
           </p>
         </div>
       </div>

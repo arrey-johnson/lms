@@ -111,7 +111,7 @@ export async function signupAction(formData: FormData) {
 
   if (mailResult.error) {
     return {
-      error: `Account created, but we could not send the confirmation email: ${mailResult.error}`,
+      error: mailResult.error,
       needsVerification: true,
       email,
     };

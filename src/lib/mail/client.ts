@@ -7,7 +7,7 @@ export function getMailConfig() {
   const pass = process.env.SMTP_PASS || "";
   const from =
     process.env.SMTP_FROM || "hello@promptstacktechnologies.com";
-  const fromName = process.env.SMTP_FROM_NAME || "LearnSpace";
+  const fromName = process.env.SMTP_FROM_NAME || "Promptstack Classroom";
 
   return { host, port, user, pass, from, fromName };
 }

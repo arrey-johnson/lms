@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 140" width="900" height="140" fill="none">
+  <path fill="#0070F8" d="M20 22c0-7.732 6.268-14 14-14h70c7.732 0 14 6.268 14 14v70c0 7.732-6.268 14-14 14H62l-28 30 6-30H34c-7.732 0-14-6.268-14-14V22z"/>
+  <path stroke="#FFFFFF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" d="M52 48l34 26-34 26"/>
+  <text x="140" y="88" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="700" letter-spacing="-0.4">
+    <tspan fill="#001C4C">Promptstack </tspan><tspan fill="#0070F8">Classroom</tspan>
+  </text>
+</svg>
