@@ -1,6 +1,6 @@
 export function SiteFooter() {
   return (
-    <footer className="border-t border-blue-100/80 bg-white/80 py-5 dark:border-slate-800 dark:bg-slate-950/80">
+    <footer className="border-t border-[color:var(--border)]/50 bg-surface-elevated/50 py-5 dark:border-slate-800 dark:bg-slate-950/80">
       <div className="mx-auto flex max-w-6xl items-center justify-center px-4">
         <a
           href="https://promptstacktechnologies.com"

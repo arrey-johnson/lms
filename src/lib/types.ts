@@ -15,6 +15,8 @@ export interface Course {
   title: string;
   description: string | null;
   thumbnail_path: string | null;
+  /** Price in USD cents (always > 0 — courses are never free) */
+  price_cents: number;
   created_at: string;
 }
 
@@ -23,8 +25,19 @@ export interface Module {
   course_id: string;
   title: string;
   description: string | null;
-  video_path: string | null;
-  thumbnail_path: string | null;
+  /** @deprecated legacy video field — unused for slide lessons */
+  video_path?: string | null;
+  thumbnail_path?: string | null;
+  order_index: number;
+  created_at: string;
+}
+
+export interface Slide {
+  id: string;
+  module_id: string;
+  title: string | null;
+  body: string;
+  image_path: string | null;
   order_index: number;
   created_at: string;
 }
@@ -41,14 +54,16 @@ export interface Progress {
   user_id: string;
   module_id: string;
   completed: boolean;
+  /** Percent of slides reached in the module (0–100) */
   watched_percentage: number;
+  /** Current / furthest slide index (0-based) */
   last_position: number;
   updated_at: string;
 }
 
 export interface CourseWithProgress extends Course {
   module_count: number;
-  completed_count: number;
+  completed_modules: number;
   progress_percent: number;
 }
 

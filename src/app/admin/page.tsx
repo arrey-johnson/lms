@@ -54,7 +54,7 @@ export default async function AdminDashboardPage() {
           <Link
             key={label}
             href={href}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700"
+            className="rounded-2xl border border-[color:var(--border)] bg-surface-elevated p-5 shadow-sm transition hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700"
           >
             <Icon className="h-5 w-5 text-blue-700 dark:text-blue-400" />
             <p className="mt-4 text-3xl font-semibold text-slate-900 dark:text-white">
@@ -74,7 +74,7 @@ export default async function AdminDashboardPage() {
         </Link>
         <Link
           href="/admin/students"
-          className="inline-flex h-11 items-center rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-800 hover:bg-white dark:border-slate-600 dark:text-slate-100"
+          className="inline-flex h-11 items-center rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-800 hover:bg-surface-elevated dark:border-slate-600 dark:text-slate-100"
         >
           Manage students
         </Link>

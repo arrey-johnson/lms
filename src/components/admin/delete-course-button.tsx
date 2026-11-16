@@ -17,7 +17,7 @@ export function DeleteCourseButton({ courseId }: { courseId: string }) {
       size="sm"
       disabled={pending}
       onClick={() => {
-        if (!confirm("Delete this course and all modules/videos?")) return;
+        if (!confirm("Delete this course and all modules/slides?")) return;
         startTransition(async () => {
           await deleteCourseAction(courseId);
           router.push("/admin/courses");

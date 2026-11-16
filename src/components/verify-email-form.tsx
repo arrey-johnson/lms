@@ -159,7 +159,7 @@ export function VerifyEmailForm({ email }: { email: string }) {
             onKeyDown={(e) => onKeyDown(index, e)}
             onPaste={onPaste}
             className={cn(
-              "h-14 w-11 rounded-xl border border-slate-200 bg-white text-center text-xl font-semibold tracking-wide text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white sm:h-16 sm:w-12"
+              "h-14 w-11 rounded-xl border border-[color:var(--border)] bg-surface-elevated text-center text-xl font-semibold tracking-wide text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white sm:h-16 sm:w-12"
             )}
             aria-label={`Digit ${index + 1}`}
           />

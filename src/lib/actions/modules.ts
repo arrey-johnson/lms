@@ -65,15 +65,15 @@ export async function deleteModuleAction(moduleId: string, courseId: string) {
   await requireAdmin();
   const admin = createAdminClient();
 
-  const { data: mod } = await admin
-    .from("modules")
-    .select("video_path, thumbnail_path, order_index")
-    .eq("id", moduleId)
-    .single();
+  const { data: slides } = await admin
+    .from("slides")
+    .select("image_path")
+    .eq("module_id", moduleId);
 
-  const paths = [mod?.video_path, mod?.thumbnail_path].filter(
-    (p): p is string => Boolean(p)
-  );
+  const paths = (slides ?? [])
+    .map((s) => s.image_path)
+    .filter((p): p is string => Boolean(p));
+
   if (paths.length) {
     await admin.storage.from("course-videos").remove(paths);
   }
@@ -81,7 +81,6 @@ export async function deleteModuleAction(moduleId: string, courseId: string) {
   const { error } = await admin.from("modules").delete().eq("id", moduleId);
   if (error) return { error: error.message };
 
-  // Compact order indexes
   const { data: remaining } = await admin
     .from("modules")
     .select("id")
@@ -97,6 +96,7 @@ export async function deleteModuleAction(moduleId: string, courseId: string) {
   }
 
   revalidatePath(`/admin/courses/${courseId}`);
+  revalidatePath(`/course/${courseId}`);
   return { success: true };
 }
 
@@ -117,4 +117,3 @@ export async function reorderModulesAction(
   revalidatePath(`/admin/courses/${courseId}`);
   return { success: true };
 }
-

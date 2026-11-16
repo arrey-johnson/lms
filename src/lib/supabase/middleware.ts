@@ -33,6 +33,7 @@ export async function updateSession(request: NextRequest) {
   const isAdminRoute = pathname.startsWith("/admin");
   const isProtectedStudentRoute =
     pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/browse") ||
     pathname.startsWith("/course") ||
     pathname.startsWith("/settings");
 

@@ -14,15 +14,13 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.0",
-    "@types/video.js": "^7.3.58",
     "clsx": "^2.1.1",
     "lucide-react": "^1.72.0",
     "next": "16.4.6",
     "nodemailer": "^10.6.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "tailwind-merge": "^3.7.0",
-    "video.js": "^10.3.0"
+    "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",

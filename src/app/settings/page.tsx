@@ -21,7 +21,10 @@ export default async function SettingsPage() {
               { href: "/admin/courses", label: "Courses" },
               { href: "/admin/students", label: "Students" },
             ]
-          : [{ href: "/dashboard", label: "My courses" }]
+          : [
+              { href: "/dashboard", label: "My courses", shortLabel: "Courses" },
+              { href: "/browse", label: "Browse courses", shortLabel: "Browse" },
+            ]
       }
     >
       <div className="mx-auto max-w-3xl space-y-6">

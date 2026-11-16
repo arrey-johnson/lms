@@ -1,5 +1,5 @@
 import { ThemeToggle } from "@/components/theme-toggle";
-import { NavLinks } from "@/components/nav-links";
+import { NavLinks, type NavItem } from "@/components/nav-links";
 import { MobileNav } from "@/components/mobile-nav";
 import { BrandLogo } from "@/components/brand-logo";
 import { SiteFooter } from "@/components/site-footer";
@@ -13,7 +13,7 @@ export function AppShell({
   avatarUrl,
 }: {
   brandHref: string;
-  nav: { href: string; label: string }[];
+  nav: NavItem[];
   children: React.ReactNode;
   userLabel?: string;
   avatarUrl?: string | null;
@@ -21,23 +21,23 @@ export function AppShell({
   const mainNav = nav.filter((item) => item.href !== "/settings");
 
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950">
-      <header className="sticky top-0 z-40 border-b border-blue-100/70 bg-white/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
-        <div className="mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between gap-4 px-4">
-          <div className="flex items-center gap-7">
-            <BrandLogo href={brandHref} size="sm" />
+    <div className="flex min-h-screen flex-col bg-transparent">
+      <header className="sticky top-0 z-40 border-b border-[color:var(--border)]/60 bg-surface-elevated/70 backdrop-blur-2xl dark:border-slate-800 dark:bg-slate-950/80">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-3 sm:h-[4.25rem] sm:gap-4 sm:px-4 md:px-6">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-7">
+            <BrandLogo href={brandHref} size="sm" className="max-w-[9.5rem] sm:max-w-none" />
             <NavLinks items={mainNav} />
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
             <ThemeToggle />
             <UserMenu userLabel={userLabel} avatarUrl={avatarUrl} />
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 pb-24 sm:pb-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-3 py-5 pb-[calc(5.75rem+env(safe-area-inset-bottom))] sm:px-4 sm:py-8 md:px-6 lg:pb-8">
         {children}
       </main>
-      <div className="pb-16 sm:pb-0">
+      <div className="pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
         <SiteFooter />
       </div>
       <MobileNav items={mainNav} />

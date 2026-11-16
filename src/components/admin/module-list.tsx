@@ -23,16 +23,18 @@ import {
   reorderModulesAction,
 } from "@/lib/actions/modules";
 import { ModuleForm } from "@/components/admin/module-form";
-import { ModuleUpload } from "@/components/admin/module-upload";
+import { SlideManager } from "@/components/admin/slide-manager";
 import { Button } from "@/components/ui/button";
-import type { Module } from "@/lib/types";
+import type { Module, Slide } from "@/lib/types";
 
 export function ModuleList({
   courseId,
   modules,
+  slidesByModule,
 }: {
   courseId: string;
   modules: Module[];
+  slidesByModule: Record<string, Slide[]>;
 }) {
   const router = useRouter();
   const [items, setItems] = useState(modules);
@@ -81,12 +83,13 @@ export function ModuleList({
               module={mod}
               index={index}
               courseId={courseId}
+              slides={slidesByModule[mod.id] ?? []}
               editing={editingId === mod.id}
               onEdit={() =>
                 setEditingId((id) => (id === mod.id ? null : mod.id))
               }
               onDelete={() => {
-                if (!confirm("Delete this module?")) return;
+                if (!confirm("Delete this module and its slides?")) return;
                 startTransition(async () => {
                   await deleteModuleAction(mod.id, courseId);
                   router.refresh();
@@ -101,6 +104,9 @@ export function ModuleList({
           No modules yet. Add your first lesson below.
         </p>
       ) : null}
+      {pending ? (
+        <p className="text-xs text-slate-400">Updating…</p>
+      ) : null}
     </div>
   );
 }
@@ -109,6 +115,7 @@ function SortableModuleCard({
   module,
   index,
   courseId,
+  slides,
   editing,
   onEdit,
   onDelete,
@@ -116,6 +123,7 @@ function SortableModuleCard({
   module: Module;
   index: number;
   courseId: string;
+  slides: Slide[];
   editing: boolean;
   onEdit: () => void;
   onDelete: () => void;
@@ -132,7 +140,7 @@ function SortableModuleCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+      className="rounded-xl border border-[color:var(--border)] bg-surface-elevated p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="flex items-start gap-3">
         <button
@@ -161,17 +169,18 @@ function SortableModuleCard({
               <div className="mt-2 flex flex-wrap gap-2 text-xs">
                 <span
                   className={
-                    module.video_path
+                    slides.length > 0
                       ? "inline-flex items-center gap-1 text-blue-700 dark:text-blue-300"
                       : "text-amber-700 dark:text-amber-300"
                   }
                 >
-                  {module.video_path ? (
+                  {slides.length > 0 ? (
                     <>
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Video uploaded
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      {slides.length} slide{slides.length === 1 ? "" : "s"}
                     </>
                   ) : (
-                    "No video yet"
+                    "No slides yet"
                   )}
                 </span>
               </div>
@@ -195,10 +204,10 @@ function SortableModuleCard({
             />
           ) : null}
 
-          <ModuleUpload
-            moduleId={module.id}
+          <SlideManager
             courseId={courseId}
-            hasVideo={Boolean(module.video_path)}
+            moduleId={module.id}
+            slides={slides}
           />
         </div>
       </div>

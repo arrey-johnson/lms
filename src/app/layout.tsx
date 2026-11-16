@@ -1,7 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit, Fraunces } from "next/font/google";
 import { AppProviders } from "@/components/app-providers";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f3f6fa" },
+    { media: "(prefers-color-scheme: dark)", color: "#020617" },
+  ],
+};
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -20,7 +30,7 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   title: "Promptstack Classroom",
   description:
-    "Build career-ready skills with courses made by Promptstack. Take free courses or buy the ones that move you forward — and train your whole team in one purchase.",
+    "Build career-ready skills with courses made by Promptstack. Buy the courses that move you forward — and train your whole team in one purchase.",
   icons: {
     icon: [{ url: "/brand/favicon-32.png", sizes: "32x32", type: "image/png" }],
     apple: [{ url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" }],

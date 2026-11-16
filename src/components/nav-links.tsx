@@ -7,6 +7,7 @@ import {
   GraduationCap,
   LayoutGrid,
   Library,
+  ShoppingBag,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -14,21 +15,24 @@ import { cn } from "@/lib/utils";
 
 const iconsByHref: Record<string, LucideIcon> = {
   "/dashboard": GraduationCap,
+  "/browse": ShoppingBag,
   "/admin": LayoutGrid,
   "/admin/courses": Library,
   "/admin/students": Users,
 };
 
-export function NavLinks({
-  items,
-}: {
-  items: { href: string; label: string }[];
-}) {
+export type NavItem = {
+  href: string;
+  label: string;
+  shortLabel?: string;
+};
+
+export function NavLinks({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   const filtered = items.filter((item) => item.href !== "/settings");
 
   return (
-    <nav className="hidden items-center gap-1 sm:flex">
+    <nav className="hidden items-center gap-1 lg:flex">
       {filtered.map((item) => {
         const active =
           item.href === "/admin" || item.href === "/dashboard"
@@ -43,11 +47,11 @@ export function NavLinks({
             className={cn(
               "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all",
               active
-                ? "bg-blue-50 text-blue-800 shadow-sm shadow-blue-900/5 dark:bg-blue-950 dark:text-blue-300"
-                : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                ? "bg-[#e8f1fc] text-[#001C4C] dark:bg-blue-950 dark:text-blue-200"
+                : "text-slate-500 hover:bg-[#e8f1fc]/80 hover:text-[#001C4C] dark:text-slate-300 dark:hover:bg-blue-950/70 dark:hover:text-blue-200"
             )}
           >
-            <Icon className="h-4 w-4" strokeWidth={1.75} />
+            <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
             {item.label}
           </Link>
         );

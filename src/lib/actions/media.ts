@@ -35,36 +35,3 @@ export async function attachCourseThumbnailAction(input: {
   revalidatePath("/dashboard");
   return { success: true };
 }
-
-export async function attachModuleVideoAction(input: {
-  courseId: string;
-  moduleId: string;
-  path: string;
-}) {
-  await requireAdmin();
-  const { courseId, moduleId, path } = input;
-  if (!courseId || !moduleId || !path) {
-    return { error: "Missing module or path." };
-  }
-
-  const admin = createAdminClient();
-  const { data: existing } = await admin
-    .from("modules")
-    .select("video_path")
-    .eq("id", moduleId)
-    .single();
-
-  const { error } = await admin
-    .from("modules")
-    .update({ video_path: path })
-    .eq("id", moduleId);
-
-  if (error) return { error: error.message };
-
-  if (existing?.video_path && existing.video_path !== path) {
-    await admin.storage.from("course-videos").remove([existing.video_path]);
-  }
-
-  revalidatePath(`/admin/courses/${courseId}`);
-  return { success: true };
-}

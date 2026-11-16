@@ -1,4 +1,5 @@
--- Allow authenticated learners to browse the catalog and self-enroll
+-- Allow authenticated learners to browse the catalog
+-- Enrollment is admin-only after purchase (no free self-enroll)
 
 drop policy if exists "Authenticated browse courses" on public.courses;
 create policy "Authenticated browse courses"
@@ -6,9 +7,6 @@ create policy "Authenticated browse courses"
   using (auth.uid() is not null);
 
 drop policy if exists "Students enroll themselves" on public.enrollments;
-create policy "Students enroll themselves"
-  on public.enrollments for insert
-  with check (auth.uid() = user_id and not public.is_admin());
 
 -- Course cover images visible to any signed-in user (catalog cards)
 drop policy if exists "Authenticated read course thumbnails" on storage.objects;

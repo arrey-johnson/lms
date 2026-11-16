@@ -29,7 +29,7 @@ export function StudentManager({
 
   return (
     <div className="space-y-10">
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section className="rounded-2xl border border-[color:var(--border)] bg-surface-elevated p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h2 className="font-[family-name:var(--font-display)] text-2xl text-slate-900 dark:text-white">
           Create student
         </h2>
@@ -152,7 +152,7 @@ function StudentCard({
       : (student.completed_modules / student.total_modules) * 100;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-2xl border border-[color:var(--border)] bg-surface-elevated p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">

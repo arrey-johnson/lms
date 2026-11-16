@@ -121,7 +121,7 @@ export function NavigationProgress() {
         </div>
       ) : null}
       {overlayVisible ? (
-        <div className="fixed inset-0 z-[99] flex items-center justify-center bg-white/80 backdrop-blur-[3px] dark:bg-slate-950/75">
+        <div className="fixed inset-0 z-[99] flex items-center justify-center bg-[#f3f6fa]/75 backdrop-blur-[3px] dark:bg-slate-950/75">
           <BrandLoader label="Opening…" />
         </div>
       ) : null}

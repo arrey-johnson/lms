@@ -15,11 +15,11 @@ const variants: Record<Variant, string> = {
   secondary:
     "bg-blue-900 text-white hover:bg-blue-950 dark:bg-blue-100 dark:text-blue-950 dark:hover:bg-white",
   ghost:
-    "bg-transparent text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800",
+    "bg-transparent text-slate-700 hover:bg-surface dark:text-slate-200 dark:hover:bg-slate-800",
   danger:
     "bg-rose-600 text-white hover:bg-rose-700",
   outline:
-    "border border-slate-300 bg-transparent text-slate-800 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800",
+    "border border-[color:var(--border)] bg-surface-elevated/70 text-slate-800 hover:bg-surface dark:border-slate-600 dark:bg-transparent dark:text-slate-100 dark:hover:bg-slate-800",
 };
 
 const sizes: Record<Size, string> = {
@@ -33,7 +33,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
         variants[variant],
         sizes[size],
         className

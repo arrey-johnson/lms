@@ -6,6 +6,7 @@ export type CourseSearchResult = {
   id: string;
   title: string;
   description: string | null;
+  price_cents: number;
 };
 
 export async function searchCoursesAction(
@@ -21,7 +22,7 @@ export async function searchCoursesAction(
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("courses")
-    .select("id, title, description")
+    .select("id, title, description, price_cents")
     .or(`title.ilike.%${safe}%,description.ilike.%${safe}%`)
     .order("title", { ascending: true })
     .limit(8);

@@ -65,6 +65,26 @@ export function CourseForm({
           placeholder="What students will learn…"
         />
       </div>
+      <div>
+        <Label htmlFor="price">Price (USD)</Label>
+        <Input
+          id="price"
+          name="price"
+          type="number"
+          required
+          min="0.01"
+          step="0.01"
+          defaultValue={
+            course?.price_cents != null
+              ? (course.price_cents / 100).toFixed(2)
+              : "14.99"
+          }
+          placeholder="14.99"
+        />
+        <p className="mt-1 text-xs text-slate-500">
+          Courses are paid — price must be greater than $0.
+        </p>
+      </div>
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
       <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : course ? "Save changes" : "Create course"}

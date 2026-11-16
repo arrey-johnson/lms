@@ -1,18 +1,20 @@
 import type { Module, Progress } from "@/lib/types";
 
-/** Consider a module fully watched near the end (or when the player fires ended). */
-export const COMPLETION_THRESHOLD = 95;
+/** Module is complete when the learner finishes the slide deck. */
+export const COMPLETION_THRESHOLD = 100;
 
 export function isModuleCompleted(progress?: Progress | null) {
   return Boolean(progress?.completed);
 }
 
+type ModuleGate = Pick<Module, "id"> & { slide_count?: number };
+
 /**
  * A module is unlocked when every earlier module is either completed
- * or has no video yet (so students aren't blocked by empty slots).
+ * or has no slides yet (so empty modules don't block the path).
  */
 export function isModuleUnlocked(
-  modules: Pick<Module, "id" | "video_path">[],
+  modules: ModuleGate[],
   moduleId: string,
   progressByModuleId: Map<string, Progress | null | undefined>,
   bypass = false
@@ -24,7 +26,8 @@ export function isModuleUnlocked(
 
   for (let i = 0; i < index; i++) {
     const prev = modules[i];
-    if (!prev.video_path) continue;
+    const slideCount = prev.slide_count ?? 0;
+    if (slideCount <= 0) continue;
     if (!isModuleCompleted(progressByModuleId.get(prev.id))) {
       return false;
     }

@@ -87,30 +87,9 @@ export async function updatePasswordAction(formData: FormData) {
   return { success: true };
 }
 
-export async function enrollInCourseAction(courseId: string) {
-  const { profile, userId } = await getCurrentProfile();
-  if (!userId || !profile || profile.disabled) {
-    return { error: "Unauthorized" };
-  }
-  if (profile.role === "admin") {
-    return { error: "Admins do not need to enroll." };
-  }
-  if (!courseId) return { error: "Missing course." };
-
-  const supabase = await createClient();
-  const { error } = await supabase.from("enrollments").insert({
-    user_id: userId,
-    course_id: courseId,
-  });
-
-  if (error) {
-    if (error.code === "23505") {
-      return { success: true };
-    }
-    return { error: error.message };
-  }
-
-  revalidatePath("/dashboard");
-  revalidatePath(`/course/${courseId}`);
-  return { success: true };
+export async function enrollInCourseAction(_courseId: string) {
+  return {
+    error:
+      "Courses are paid. Purchase access, then an admin will enroll you.",
+  };
 }

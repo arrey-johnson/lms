@@ -8,7 +8,7 @@ import {
   searchCoursesAction,
   type CourseSearchResult,
 } from "@/lib/actions/search";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 
 export function CourseSearch({ className }: { className?: string }) {
   const router = useRouter();
@@ -89,7 +89,7 @@ export function CourseSearch({ className }: { className?: string }) {
           aria-autocomplete="list"
           aria-controls={listId}
           aria-expanded={open && (results.length > 0 || !!error)}
-          className="h-11 w-full rounded-full border border-blue-100 bg-white/90 pl-10 pr-10 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#0070F8] focus:ring-2 focus:ring-[#0070F8]/20 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-500"
+          className="h-11 w-full rounded-full border border-[color:var(--border)] bg-surface-elevated/90 pl-10 pr-10 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#0070F8] focus:ring-2 focus:ring-[#0070F8]/20 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-500"
         />
         {query ? (
           <button
@@ -100,7 +100,7 @@ export function CourseSearch({ className }: { className?: string }) {
               setResults([]);
               setOpen(false);
             }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition hover:bg-surface hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <X className="h-3.5 w-3.5" strokeWidth={2} />
           </button>
@@ -111,7 +111,7 @@ export function CourseSearch({ className }: { className?: string }) {
         <div
           id={listId}
           role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900"
+          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-2xl border border-[color:var(--border)] bg-surface-elevated shadow-xl shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900"
         >
           {pending && results.length === 0 ? (
             <p className="px-4 py-3 text-sm text-slate-500">Searching…</p>
@@ -132,8 +132,15 @@ export function CourseSearch({ className }: { className?: string }) {
                   onClick={() => goToCourse(course.id)}
                   className="flex w-full flex-col gap-0.5 px-4 py-3 text-left transition hover:bg-blue-50 dark:hover:bg-slate-800"
                 >
-                  <span className="text-sm font-medium text-slate-900 dark:text-white">
-                    {course.title}
+                  <span className="flex items-start justify-between gap-3">
+                    <span className="text-sm font-medium text-slate-900 dark:text-white">
+                      {course.title}
+                    </span>
+                    <span className="shrink-0 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                      {formatPrice(
+                        course.price_cents > 0 ? course.price_cents : 1499
+                      )}
+                    </span>
                   </span>
                   {course.description ? (
                     <span className="line-clamp-1 text-xs text-slate-500">
@@ -150,7 +157,7 @@ export function CourseSearch({ className }: { className?: string }) {
               className="text-xs font-medium text-[#0070F8] hover:underline"
               onClick={() => setOpen(false)}
             >
-              Create an account to enroll
+              Create an account to buy
             </Link>
           </div>
         </div>

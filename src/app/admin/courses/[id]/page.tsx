@@ -7,7 +7,7 @@ import { CourseThumbnailUpload } from "@/components/admin/course-thumbnail-uploa
 import { DeleteCourseButton } from "@/components/admin/delete-course-button";
 import { ModuleForm } from "@/components/admin/module-form";
 import { ModuleList } from "@/components/admin/module-list";
-import type { Course, Module } from "@/lib/types";
+import type { Course, Module, Slide } from "@/lib/types";
 
 export default async function AdminCourseDetailPage({
   params,
@@ -42,28 +42,44 @@ export default async function AdminCourseDetailPage({
     .eq("course_id", id)
     .order("order_index", { ascending: true });
 
+  const typedModules = (modules ?? []) as Module[];
+  const moduleIds = typedModules.map((m) => m.id);
+  const { data: slides } = moduleIds.length
+    ? await supabase
+        .from("slides")
+        .select("*")
+        .in("module_id", moduleIds)
+        .order("order_index", { ascending: true })
+    : { data: [] as Slide[] };
+
+  const slidesByModule: Record<string, Slide[]> = {};
+  for (const slide of (slides ?? []) as Slide[]) {
+    if (!slidesByModule[slide.module_id]) slidesByModule[slide.module_id] = [];
+    slidesByModule[slide.module_id].push(slide);
+  }
+
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <Link
             href="/admin/courses"
             className="text-sm text-blue-700 hover:underline dark:text-blue-400"
           >
             ← All courses
           </Link>
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl text-slate-900 dark:text-white">
+          <h1 className="mt-2 break-words font-[family-name:var(--font-display)] text-2xl text-slate-900 sm:text-3xl dark:text-white">
             {typedCourse.title}
           </h1>
         </div>
         <DeleteCourseButton courseId={typedCourse.id} />
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section className="rounded-2xl border border-[color:var(--border)] bg-surface-elevated p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
           Course details
         </h2>
-        <div className="mt-4 grid gap-6 lg:grid-cols-2">
+        <div className="mt-4 grid gap-6 md:grid-cols-2">
           <CourseForm course={typedCourse} />
           <CourseThumbnailUpload
             courseId={typedCourse.id}
@@ -78,16 +94,17 @@ export default async function AdminCourseDetailPage({
             Modules
           </h2>
           <p className="text-sm text-slate-500">
-            Drag to reorder. Upload a screen recording for each module.
+            Drag to reorder modules. Build each lesson as a slide deck.
           </p>
         </div>
         <ModuleList
           courseId={typedCourse.id}
-          modules={(modules ?? []) as Module[]}
+          modules={typedModules}
+          slidesByModule={slidesByModule}
         />
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section className="rounded-2xl border border-[color:var(--border)] bg-surface-elevated p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
           Add module
         </h2>

@@ -97,7 +97,7 @@ export function ProfileSettingsPanel({
   }
 
   return (
-    <div className="overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="overflow-hidden rounded-[1.75rem] border border-[color:var(--border)] bg-surface-elevated shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500 px-6 pb-16 pt-8 text-white">
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
         <div className="relative flex items-start justify-between gap-4">
@@ -123,7 +123,7 @@ export function ProfileSettingsPanel({
             className="ring-4 ring-white shadow-lg dark:ring-slate-900"
           />
           <div className="flex flex-wrap gap-2 pb-1">
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[color:var(--border)] bg-surface-elevated px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
               <Camera className="h-4 w-4" strokeWidth={1.75} />
               {uploading
                 ? "Uploading…"
@@ -143,7 +143,7 @@ export function ProfileSettingsPanel({
                 type="button"
                 disabled={pending || uploading}
                 onClick={() => void removePhoto()}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
+                className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-surface-elevated px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
               >
                 <Trash2 className="h-4 w-4" strokeWidth={1.75} />
                 Remove
@@ -212,7 +212,7 @@ export function PasswordSettingsForm() {
   const [pending, startTransition] = useTransition();
 
   return (
-    <div className="rounded-[1.75rem] border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-[1.75rem] border border-[color:var(--border)] bg-surface-elevated p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-5 flex items-center gap-3">
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
           <LockKeyhole className="h-5 w-5" strokeWidth={1.75} />

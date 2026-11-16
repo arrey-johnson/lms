@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { CoursePlayer } from "@/components/student/course-player";
 import { isModuleUnlocked } from "@/lib/module-access";
-import type { Module, Progress } from "@/lib/types";
+import type { Module, Progress, Slide } from "@/lib/types";
 
 export default async function CoursePage({
   params,
@@ -43,20 +43,36 @@ export default async function CoursePage({
     .eq("course_id", courseId)
     .order("order_index", { ascending: true });
 
-  const moduleIds = (modules ?? []).map((m) => m.id);
-  const { data: progressRows } = moduleIds.length
-    ? await supabase
-        .from("progress")
-        .select("*")
-        .eq("user_id", userId)
-        .in("module_id", moduleIds)
-    : { data: [] as Progress[] };
+  const orderedModules = (modules ?? []) as Module[];
+  const moduleIds = orderedModules.map((m) => m.id);
+
+  const [{ data: progressRows }, { data: slides }] = await Promise.all([
+    moduleIds.length
+      ? supabase
+          .from("progress")
+          .select("*")
+          .eq("user_id", userId)
+          .in("module_id", moduleIds)
+      : Promise.resolve({ data: [] as Progress[] }),
+    moduleIds.length
+      ? supabase
+          .from("slides")
+          .select("*")
+          .in("module_id", moduleIds)
+          .order("order_index", { ascending: true })
+      : Promise.resolve({ data: [] as Slide[] }),
+  ]);
 
   const progressByModule = new Map(
     (progressRows ?? []).map((p) => [p.module_id, p as Progress])
   );
 
-  const orderedModules = (modules ?? []) as Module[];
+  const slidesByModule = new Map<string, Slide[]>();
+  for (const slide of (slides ?? []) as Slide[]) {
+    const list = slidesByModule.get(slide.module_id) || [];
+    list.push(slide);
+    slidesByModule.set(slide.module_id, list);
+  }
 
   let courseThumbnailUrl: string | null = null;
   if (course.thumbnail_path) {
@@ -66,27 +82,40 @@ export default async function CoursePage({
     courseThumbnailUrl = data?.signedUrl ?? null;
   }
 
-  const modulesWithUrls = await Promise.all(
+  const modulesWithSlides = await Promise.all(
     orderedModules.map(async (mod) => {
+      const moduleSlides = slidesByModule.get(mod.id) || [];
       const unlocked = isModuleUnlocked(
-        orderedModules,
+        orderedModules.map((m) => ({
+          id: m.id,
+          slide_count: (slidesByModule.get(m.id) || []).length,
+        })),
         mod.id,
         progressByModule,
         isAdmin
       );
 
-      let videoUrl: string | null = null;
-      if (mod.video_path && unlocked) {
-        const { data } = await supabase.storage
-          .from("course-videos")
-          .createSignedUrl(mod.video_path, 60 * 60);
-        videoUrl = data?.signedUrl ?? null;
-      }
+      const slidesWithUrls = await Promise.all(
+        moduleSlides.map(async (slide) => {
+          let imageUrl: string | null = null;
+          if (slide.image_path && unlocked) {
+            const { data } = await supabase.storage
+              .from("course-videos")
+              .createSignedUrl(slide.image_path, 60 * 60);
+            imageUrl = data?.signedUrl ?? null;
+          }
+          return { ...slide, imageUrl };
+        })
+      );
 
       return {
         ...mod,
         progress: progressByModule.get(mod.id) ?? null,
-        videoUrl,
+        slides: unlocked ? slidesWithUrls : slidesWithUrls.map((s) => ({
+          ...s,
+          imageUrl: null,
+        })),
+        slide_count: moduleSlides.length,
       };
     })
   );
@@ -103,14 +132,17 @@ export default async function CoursePage({
               { href: "/admin/courses", label: "Courses" },
               { href: "/admin/students", label: "Students" },
             ]
-          : [{ href: "/dashboard", label: "My courses" }]
+          : [
+              { href: "/dashboard", label: "My courses", shortLabel: "Courses" },
+              { href: "/browse", label: "Browse courses", shortLabel: "Browse" },
+            ]
       }
     >
       <CoursePlayer
         courseTitle={course.title}
         courseDescription={course.description}
         courseThumbnailUrl={courseThumbnailUrl}
-        modules={modulesWithUrls}
+        modules={modulesWithSlides}
         bypassLocks={isAdmin}
       />
     </AppShell>

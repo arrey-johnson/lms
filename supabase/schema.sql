@@ -18,17 +18,29 @@ create table if not exists public.courses (
   title text not null,
   description text,
   thumbnail_path text, -- course cover image in Supabase Storage
+  price_cents integer not null default 1499 check (price_cents > 0),
   created_at timestamptz default now()
 );
 
--- Modules
+-- Modules (lessons) — content is slide-based
 create table if not exists public.modules (
   id uuid primary key default gen_random_uuid(),
   course_id uuid references public.courses(id) on delete cascade not null,
   title text not null,
   description text,
-  video_path text,
-  thumbnail_path text,
+  video_path text, -- legacy, unused
+  thumbnail_path text, -- legacy, unused
+  order_index integer not null,
+  created_at timestamptz default now()
+);
+
+-- Slides within a module
+create table if not exists public.slides (
+  id uuid primary key default gen_random_uuid(),
+  module_id uuid references public.modules(id) on delete cascade not null,
+  title text,
+  body text not null default '',
+  image_path text,
   order_index integer not null,
   created_at timestamptz default now()
 );
@@ -68,6 +80,8 @@ create table if not exists public.email_otps (
 -- Indexes
 create index if not exists modules_course_id_idx on public.modules(course_id);
 create index if not exists modules_order_idx on public.modules(course_id, order_index);
+create index if not exists slides_module_id_idx on public.slides(module_id);
+create index if not exists slides_order_idx on public.slides(module_id, order_index);
 create index if not exists enrollments_user_id_idx on public.enrollments(user_id);
 create index if not exists enrollments_course_id_idx on public.enrollments(course_id);
 create index if not exists progress_user_id_idx on public.progress(user_id);
@@ -135,6 +149,7 @@ create trigger on_auth_user_created
 alter table public.profiles enable row level security;
 alter table public.courses enable row level security;
 alter table public.modules enable row level security;
+alter table public.slides enable row level security;
 alter table public.enrollments enable row level security;
 alter table public.progress enable row level security;
 alter table public.email_otps enable row level security;
@@ -185,6 +200,28 @@ create policy "Students read enrolled modules"
   on public.modules for select
   using (public.is_enrolled(course_id));
 
+-- Slides policies
+drop policy if exists "Admin full access slides" on public.slides;
+create policy "Admin full access slides"
+  on public.slides for all
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Students read enrolled slides" on public.slides;
+create policy "Students read enrolled slides"
+  on public.slides for select
+  using (
+    exists (
+      select 1
+      from public.modules m
+      where m.id = slides.module_id
+        and (
+          public.is_admin()
+          or public.is_enrolled(m.course_id)
+        )
+    )
+  );
+
 -- Enrollments policies
 drop policy if exists "Admin full access enrollments" on public.enrollments;
 create policy "Admin full access enrollments"
@@ -209,14 +246,14 @@ create policy "Admin read all progress"
   on public.progress for select
   using (public.is_admin());
 
--- Storage bucket for course videos
+-- Storage bucket for course media (thumbnails + slide images)
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'course-videos',
   'course-videos',
   false,
-  524288000, -- 500MB
-  array['video/mp4', 'video/webm', 'video/quicktime', 'image/jpeg', 'image/png', 'image/webp', 'image/jpg']
+  20971520, -- 20MB
+  array['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
 )
 on conflict (id) do update set
   file_size_limit = excluded.file_size_limit,

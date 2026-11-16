@@ -50,7 +50,7 @@ export function UserMenu({
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-[calc(100%+0.55rem)] z-50 w-64 overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 shadow-xl shadow-slate-900/10 backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/95">
+        <div className="absolute right-0 top-[calc(100%+0.55rem)] z-50 w-64 overflow-hidden rounded-2xl border border-slate-200/90 bg-surface-elevated/95 shadow-xl shadow-slate-900/10 backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/95">
           <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
             <Avatar avatarUrl={avatarUrl} name={userLabel} size="sm" />
             <div className="min-w-0">
