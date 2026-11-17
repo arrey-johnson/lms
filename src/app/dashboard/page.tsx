@@ -19,7 +19,7 @@ import type { Course } from "@/lib/types";
 function coursePrice(course: { price_cents?: number | null }) {
   return typeof course.price_cents === "number" && course.price_cents > 0
     ? course.price_cents
-    : 1499;
+    : 9900;
 }
 
 export default async function StudentDashboardPage() {
@@ -465,6 +465,7 @@ export default async function StudentDashboardPage() {
                         courseTitle={course.title}
                         priceCents={priceCents}
                         market={market}
+                        cta="Buy now"
                       />
                     </div>
                   </div>

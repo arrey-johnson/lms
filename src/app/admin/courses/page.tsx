@@ -65,7 +65,7 @@ export default async function AdminCoursesPage() {
                     typeof course.price_cents === "number" &&
                       course.price_cents > 0
                       ? course.price_cents
-                      : 1499,
+                      : 9900,
                     market
                   )}{" "}
                   · {courseStudyLabel(course.curriculum_slug, moduleCount)}

@@ -27,14 +27,12 @@ export function CheckoutPanel({
   courseId,
   courseTitle,
   amountXaf,
-  referencePrice,
   testMode,
   initial,
 }: {
   courseId: string;
   courseTitle: string;
   amountXaf: number;
-  referencePrice: string | null;
   testMode: boolean;
   initial: ActivePayment | null;
 }) {
@@ -213,9 +211,6 @@ export function CheckoutPanel({
           <p className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
             {amount}
           </p>
-          {referencePrice ? (
-            <p className="mt-1 text-xs text-slate-400">About {referencePrice}</p>
-          ) : null}
         </div>
       </div>
 

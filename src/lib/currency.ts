@@ -2,12 +2,6 @@ export type PriceMarket = "usd" | "xaf";
 
 export const MARKET_COOKIE = "pc_market";
 
-/** Approx. CFA francs per 1 USD — override with USD_TO_XAF_RATE */
-export function getUsdToXafRate() {
-  const raw = Number(process.env.USD_TO_XAF_RATE || "600");
-  return Number.isFinite(raw) && raw > 0 ? raw : 600;
-}
-
 export function resolveMarketFromCountry(countryCode: string | null | undefined): PriceMarket {
   return countryCode?.trim().toUpperCase() === "CM" ? "xaf" : "usd";
 }
@@ -53,14 +47,11 @@ export function detectClientMarket(): PriceMarket {
   return "usd";
 }
 
-export function usdCentsToXaf(priceCents: number, rate = getUsdToXafRate()) {
-  const dollars = Math.max(0, priceCents) / 100;
-  return Math.round(dollars * rate);
-}
-
-/** Whole FCFA, never below Fapshi's 100 XAF minimum. */
-export function courseAmountXaf(priceCents: number, rate = getUsdToXafRate()) {
-  return Math.max(100, usdCentsToXaf(priceCents, rate));
+/** Whole FCFA stored on the course. Never below Fapshi's 100 XAF minimum. */
+export function courseAmountXaf(priceXaf: number) {
+  const amount = Math.round(Number(priceXaf));
+  if (!Number.isFinite(amount)) return 100;
+  return Math.max(100, amount);
 }
 
 export function formatXaf(amount: number) {
@@ -69,23 +60,7 @@ export function formatXaf(amount: number) {
   }).format(Math.max(0, Math.round(amount)))} FCFA`;
 }
 
-/**
- * Format course price for the visitor's market.
- * Canonical storage stays USD cents; Cameroon sees FCFA.
- */
-export function formatCoursePrice(
-  priceCents: number,
-  market: PriceMarket = "usd"
-) {
-  const cents = Math.max(0, Math.round(priceCents));
-  if (market === "xaf") {
-    const xaf = usdCentsToXaf(cents);
-    return `${new Intl.NumberFormat("fr-FR", {
-      maximumFractionDigits: 0,
-    }).format(xaf)} FCFA`;
-  }
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(cents / 100);
+/** Course prices are whole FCFA for every visitor. */
+export function formatCoursePrice(priceXaf: number, _market?: PriceMarket) {
+  return formatXaf(priceXaf);
 }

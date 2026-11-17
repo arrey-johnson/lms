@@ -10,9 +10,9 @@ export function formatPercent(value: number) {
   return `${Math.round(Math.min(100, Math.max(0, value)))}%`;
 }
 
-/** Region-aware price. Pass market ("xaf" for Cameroon, "usd" elsewhere). */
-export function formatPrice(priceCents: number, market: PriceMarket = "usd") {
-  return formatCoursePrice(priceCents, market);
+/** Course price in FCFA. */
+export function formatPrice(priceXaf: number, market?: PriceMarket) {
+  return formatCoursePrice(priceXaf, market);
 }
 
 export type { PriceMarket };

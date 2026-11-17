@@ -7,7 +7,7 @@ import {
   type PriceMarket,
 } from "@/lib/currency";
 
-/** Region-aware price — Cameroon visitors see FCFA; everyone else sees USD. */
+/** Course price in FCFA. */
 export function PriceLabel({
   priceCents,
   market,

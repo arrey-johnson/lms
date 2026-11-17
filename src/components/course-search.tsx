@@ -140,7 +140,7 @@ export function CourseSearch({ className }: { className?: string }) {
                     <PriceLabel
                       className="shrink-0 text-xs font-semibold text-slate-700 dark:text-slate-200"
                       priceCents={
-                        course.price_cents > 0 ? course.price_cents : 1499
+                        course.price_cents > 0 ? course.price_cents : 9900
                       }
                     />
                   </span>

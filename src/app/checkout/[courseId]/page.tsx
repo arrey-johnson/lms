@@ -7,8 +7,7 @@ import { CheckoutPanel } from "@/components/checkout-panel";
 import { courseStudyLabel } from "@/content/ai-foundations-module-1";
 import { activeFapshiEnvironment } from "@/lib/fapshi/client";
 import { classifyWallet } from "@/lib/fapshi/phone";
-import { courseAmountXaf, formatCoursePrice } from "@/lib/currency";
-import { getPriceMarket } from "@/lib/market";
+import { courseAmountXaf } from "@/lib/currency";
 import { syncPaymentById } from "@/lib/payments/sync";
 import type { PaymentRecord, Wallet } from "@/lib/payments/types";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -24,7 +23,6 @@ export default async function CheckoutPage({
   const { profile, userId } = await requireStudent();
   const { courseId } = await params;
   const { payment: paymentQuery } = await searchParams;
-  const market = await getPriceMarket();
   const supabase = await createClient();
   const admin = createAdminClient();
 
@@ -89,7 +87,7 @@ export default async function CheckoutPage({
   const priceCents =
     typeof course.price_cents === "number" && course.price_cents > 0
       ? course.price_cents
-      : 1499;
+      : 9900;
   const amountXaf = payment?.amount_xaf || courseAmountXaf(priceCents);
   const wallet = (payment?.phone ? classifyWallet(payment.phone) : null) as Wallet | null;
 
@@ -170,9 +168,6 @@ export default async function CheckoutPage({
           courseId={courseId}
           courseTitle={course.title}
           amountXaf={amountXaf}
-          referencePrice={
-            market === "usd" ? formatCoursePrice(priceCents, "usd") : null
-          }
           testMode={activeFapshiEnvironment() === "sandbox"}
           initial={initial}
         />

@@ -12,11 +12,13 @@ export function EnrollButton({
   courseId,
   priceCents,
   market,
+  cta = "Pay with mobile money",
 }: {
   courseId: string;
   courseTitle: string;
   priceCents: number;
   market?: PriceMarket;
+  cta?: string;
 }) {
   const [resolved, setResolved] = useState<PriceMarket>(market ?? "usd");
 
@@ -37,7 +39,7 @@ export function EnrollButton({
         href={`/checkout/${courseId}`}
         className="inline-flex h-8 w-full items-center justify-center rounded-md bg-[#0070F8] px-3 text-xs font-semibold text-white transition hover:bg-blue-700"
       >
-        Pay with mobile money
+        {cta}
       </Link>
     </div>
   );

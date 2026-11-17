@@ -18,7 +18,7 @@ create table if not exists public.courses (
   title text not null,
   description text,
   thumbnail_path text, -- course cover image in Supabase Storage
-  price_cents integer not null default 1499 check (price_cents > 0),
+  price_cents integer not null default 9900 check (price_cents >= 100),
   created_at timestamptz default now()
 );
 

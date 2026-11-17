@@ -67,24 +67,23 @@ export function CourseForm({
         />
       </div>
       <div>
-        <Label htmlFor="price">Price (USD)</Label>
+        <Label htmlFor="price">Price (FCFA)</Label>
         <Input
           id="price"
           name="price"
           type="number"
           required
-          min="0.01"
-          step="0.01"
+          min="100"
+          step="1"
           defaultValue={
-            course?.price_cents != null
-              ? (course.price_cents / 100).toFixed(2)
-              : "14.99"
+            course?.price_cents != null && course.price_cents > 0
+              ? String(course.price_cents)
+              : "9900"
           }
-          placeholder="14.99"
+          placeholder="9900"
         />
         <p className="mt-1 text-xs text-slate-500">
-          Stored in USD. Visitors in Cameroon see FCFA automatically; everyone
-          else sees dollars.
+          Charged in FCFA with MTN Mobile Money or Orange Money. Minimum 100 FCFA.
         </p>
       </div>
       <div>

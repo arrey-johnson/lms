@@ -8,11 +8,14 @@ import { getCurriculum } from "@/content/ai-foundations-module-1";
 
 function parsePriceCents(formData: FormData): number | { error: string } {
   const raw = String(formData.get("price") || "").trim();
-  const dollars = Number.parseFloat(raw);
-  if (!Number.isFinite(dollars) || dollars <= 0) {
-    return { error: "Price must be greater than $0 — courses are not free." };
+  if (!/^\d+$/.test(raw)) {
+    return { error: "Enter a whole price in FCFA." };
   }
-  return Math.round(dollars * 100);
+  const amount = Number(raw);
+  if (amount < 100) {
+    return { error: "Price must be at least 100 FCFA." };
+  }
+  return amount;
 }
 
 function missingCurriculumColumn(message: string) {
