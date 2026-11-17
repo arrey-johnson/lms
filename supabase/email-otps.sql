@@ -1,4 +1,4 @@
--- Email confirmation OTPs (6-digit codes sent via Zoho)
+-- Email confirmation OTPs (6-digit codes sent via Hostinger)
 create table if not exists public.email_otps (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null,

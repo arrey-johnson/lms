@@ -66,7 +66,7 @@ create table if not exists public.progress (
   unique(user_id, module_id)
 );
 
--- Email confirmation OTPs (sent via Zoho from hello@promptstacktechnologies.com)
+-- Email confirmation OTPs (sent via Hostinger from support@promptstackclassroom.com)
 create table if not exists public.email_otps (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null,

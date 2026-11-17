@@ -25,8 +25,8 @@ export default async function VerifyEmailPage({
             Confirm your email
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Enter the 6-digit code from Promptstack Technologies
-            (hello@promptstacktechnologies.com).
+            Enter the 6-digit code from Promptstack Classroom
+            (support@promptstackclassroom.com).
           </p>
           {mailError ? (
             <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">

@@ -604,13 +604,44 @@ function VoiceWave({ analyser }: { analyser: AnalyserNode }) {
     if (!canvas || !ctx) return;
 
     const samples = new Uint8Array(analyser.fftSize);
-    const bars = 40;
-    const history = new Array<number>(bars).fill(0);
+    const history = new Float32Array(36);
     let frame = 0;
-    let lastSample = 0;
+    let lastPush = 0;
+    let eased = 0;
     let quietFrames = 0;
     let clearFrames = 0;
     let cueNow: "listening" | "quiet" | "clear" = "listening";
+
+    const smoothAt = (index: number) => {
+      const previous = history[Math.max(0, index - 1)];
+      const current = history[index];
+      const next = history[Math.min(history.length - 1, index + 1)];
+      return previous * 0.25 + current * 0.5 + next * 0.25;
+    };
+
+    const traceRibbon = (width: number, height: number) => {
+      const mid = height / 2;
+      const reach = mid - 1;
+      const last = history.length - 1;
+      ctx.beginPath();
+      ctx.moveTo(0, mid - smoothAt(0) * reach);
+      for (let index = 1; index <= last; index += 1) {
+        const x = (index / last) * width;
+        const previousX = ((index - 1) / last) * width;
+        const y = mid - smoothAt(index) * reach;
+        const previousY = mid - smoothAt(index - 1) * reach;
+        ctx.quadraticCurveTo(previousX, previousY, (previousX + x) / 2, (previousY + y) / 2);
+      }
+      ctx.lineTo(width, mid - smoothAt(last) * reach);
+      for (let index = last; index >= 1; index -= 1) {
+        const x = (index / last) * width;
+        const previousX = ((index - 1) / last) * width;
+        const y = mid + smoothAt(index) * reach;
+        const previousY = mid + smoothAt(index - 1) * reach;
+        ctx.quadraticCurveTo(x, y, (x + previousX) / 2, (y + previousY) / 2);
+      }
+      ctx.closePath();
+    };
 
     const draw = (now: number) => {
       frame = window.requestAnimationFrame(draw);
@@ -620,14 +651,19 @@ function VoiceWave({ analyser }: { analyser: AnalyserNode }) {
         const sample = (samples[index] - 128) / 128;
         sum += sample * sample;
       }
-      const level = Math.min(1, Math.sqrt(sum / samples.length) * 7);
+      const rms = Math.sqrt(sum / samples.length);
+      const level = Math.min(1, rms * 7);
 
-      if (now - lastSample > 70) {
-        history.push(level);
-        history.shift();
-        lastSample = now;
-      } else {
-        history[history.length - 1] = level;
+      if (now - lastPush > 180) {
+        let peak = 0;
+        for (let index = 0; index < samples.length; index += 4) {
+          peak = Math.max(peak, Math.abs((samples[index] - 128) / 128));
+        }
+        const target = Math.tanh(Math.max(rms, peak * 0.7) * 12);
+        eased += (target - eased) * 0.35;
+        history.copyWithin(0, 1);
+        history[history.length - 1] = Math.max(0.04, eased);
+        lastPush = now;
       }
 
       if (level < 0.1) {
@@ -656,18 +692,31 @@ function VoiceWave({ analyser }: { analyser: AnalyserNode }) {
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
-      const gap = 3;
-      const barWidth = Math.max(2, (width - gap * (bars - 1)) / bars);
-      for (let index = 0; index < bars; index += 1) {
-        const value = history[index];
-        const barHeight = Math.max(3, value * (height - 2));
-        const x = index * (barWidth + gap);
-        const y = (height - barHeight) / 2;
-        ctx.fillStyle = value > 0.1 ? "#0070F8" : "rgba(148, 163, 184, 0.5)";
-        ctx.beginPath();
-        ctx.roundRect(x, y, barWidth, barHeight, 999);
-        ctx.fill();
-      }
+
+      const fade = ctx.createLinearGradient(0, 0, 0, height);
+      fade.addColorStop(0, "rgba(191, 219, 254, 0.16)");
+      fade.addColorStop(0.5, "rgba(147, 197, 253, 0.42)");
+      fade.addColorStop(1, "rgba(191, 219, 254, 0.16)");
+      traceRibbon(width, height);
+      ctx.fillStyle = fade;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(226, 232, 240, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      ctx.globalCompositeOperation = "destination-out";
+      const fadeEdge = (from: number, to: number) => {
+        const edge = ctx.createLinearGradient(from, 0, to, 0);
+        edge.addColorStop(0, "rgba(0, 0, 0, 0.75)");
+        edge.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = edge;
+        ctx.fillRect(Math.min(from, to), 0, Math.abs(to - from), height);
+      };
+      fadeEdge(0, 18);
+      fadeEdge(width, width - 18);
+      ctx.globalCompositeOperation = "source-over";
     };
 
     frame = window.requestAnimationFrame(draw);
@@ -678,7 +727,7 @@ function VoiceWave({ analyser }: { analyser: AnalyserNode }) {
     <div className="flex min-w-0 flex-1 flex-col justify-center">
       <canvas
         ref={canvasRef}
-        className="h-8 w-full"
+        className="h-10 w-full"
         role="img"
         aria-label={
           cue === "quiet"

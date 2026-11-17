@@ -1,6 +1,6 @@
 import { formatPrice } from "@/lib/utils";
 
-const PURCHASE_EMAIL = "hello@promptstacktechnologies.com";
+const PURCHASE_EMAIL = "support@promptstackclassroom.com";
 
 export function EnrollButton({
   courseId,

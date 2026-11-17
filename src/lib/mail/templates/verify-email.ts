@@ -35,8 +35,7 @@ This code expires in 15 minutes.
 If you did not create a Promptstack Classroom account, you can ignore this email.
 
 — Promptstack Classroom
-Promptstack Technologies
-hello@promptstacktechnologies.com`;
+support@promptstackclassroom.com`;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -98,7 +97,7 @@ hello@promptstacktechnologies.com`;
             <td style="padding:20px 32px 28px;border-top:1px solid #e2e8f0;background:#f8fafc;">
               <p style="margin:0 0 4px;font-size:13px;color:#475569;">
                 Questions? Reach us at
-                <a href="mailto:hello@promptstacktechnologies.com" style="color:#0070F8;text-decoration:none;">hello@promptstacktechnologies.com</a>
+                <a href="mailto:support@promptstackclassroom.com" style="color:#0070F8;text-decoration:none;">support@promptstackclassroom.com</a>
               </p>
               <p style="margin:0;font-size:12px;color:#94a3b8;">
                 © ${new Date().getFullYear()} Promptstack Technologies · Promptstack Classroom

@@ -78,7 +78,7 @@ export default function HomePage() {
           </div>
           <p className="mt-3">
             <a
-              href="mailto:hello@promptstacktechnologies.com?subject=Train%20your%20team%20%E2%80%94%20Promptstack%20Classroom"
+              href="mailto:support@promptstackclassroom.com?subject=Train%20your%20team%20%E2%80%94%20Promptstack%20Classroom"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-[#0070F8] transition hover:underline"
             >
               <Building2 className="h-4 w-4" strokeWidth={1.75} />

@@ -1,12 +1,11 @@
 import nodemailer from "nodemailer";
 
 export function getMailConfig() {
-  const host = process.env.SMTP_HOST || "smtppro.zoho.com";
+  const host = process.env.SMTP_HOST || "smtp.hostinger.com";
   const port = Number(process.env.SMTP_PORT || "465");
-  const user = process.env.SMTP_USER || "hello@promptstacktechnologies.com";
+  const user = process.env.SMTP_USER || "support@promptstackclassroom.com";
   const pass = process.env.SMTP_PASS || "";
-  const from =
-    process.env.SMTP_FROM || "hello@promptstacktechnologies.com";
+  const from = process.env.SMTP_FROM || "support@promptstackclassroom.com";
   const fromName = process.env.SMTP_FROM_NAME || "Promptstack Classroom";
 
   return { host, port, user, pass, from, fromName };
@@ -17,7 +16,7 @@ export function createMailTransport() {
 
   if (!pass) {
     throw new Error(
-      "SMTP_PASS is not configured. Add your Zoho app password to .env.local."
+      "SMTP_PASS is not configured. Add the Hostinger mailbox password for support@promptstackclassroom.com to .env.local."
     );
   }
 
