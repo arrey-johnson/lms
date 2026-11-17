@@ -15,7 +15,7 @@ export interface Course {
   title: string;
   description: string | null;
   thumbnail_path: string | null;
-  /** Price in USD cents (always > 0 — courses are never free) */
+  /** Price in USD cents (canonical). Cameroon visitors see FCFA; others see USD. */
   price_cents: number;
   /** Set to a tutor curriculum slug to replace the slide player. */
   curriculum_slug?: string | null;

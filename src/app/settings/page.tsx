@@ -20,6 +20,7 @@ export default async function SettingsPage() {
               { href: "/admin", label: "Overview" },
               { href: "/admin/courses", label: "Courses" },
               { href: "/admin/students", label: "Students" },
+              { href: "/admin/payments", label: "Payments" },
             ]
           : [
               { href: "/dashboard", label: "My courses", shortLabel: "Courses" },

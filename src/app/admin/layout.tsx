@@ -17,6 +17,7 @@ export default async function AdminLayout({
         { href: "/admin", label: "Overview" },
         { href: "/admin/courses", label: "Courses" },
         { href: "/admin/students", label: "Students" },
+        { href: "/admin/payments", label: "Payments" },
       ]}
     >
       {children}

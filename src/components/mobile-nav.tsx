@@ -7,6 +7,7 @@ import {
   GraduationCap,
   LayoutGrid,
   Library,
+  Receipt,
   ShoppingBag,
   Users,
   type LucideIcon,
@@ -20,6 +21,7 @@ const iconsByHref: Record<string, LucideIcon> = {
   "/admin": LayoutGrid,
   "/admin/courses": Library,
   "/admin/students": Users,
+  "/admin/payments": Receipt,
 };
 
 export function MobileNav({ items }: { items: NavItem[] }) {

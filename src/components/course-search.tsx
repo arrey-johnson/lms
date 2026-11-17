@@ -8,7 +8,8 @@ import {
   searchCoursesAction,
   type CourseSearchResult,
 } from "@/lib/actions/search";
-import { cn, formatPrice } from "@/lib/utils";
+import { PriceLabel } from "@/components/price-label";
+import { cn } from "@/lib/utils";
 
 export function CourseSearch({ className }: { className?: string }) {
   const router = useRouter();
@@ -136,11 +137,12 @@ export function CourseSearch({ className }: { className?: string }) {
                     <span className="text-sm font-medium text-slate-900 dark:text-white">
                       {course.title}
                     </span>
-                    <span className="shrink-0 text-xs font-semibold text-slate-700 dark:text-slate-200">
-                      {formatPrice(
+                    <PriceLabel
+                      className="shrink-0 text-xs font-semibold text-slate-700 dark:text-slate-200"
+                      priceCents={
                         course.price_cents > 0 ? course.price_cents : 1499
-                      )}
-                    </span>
+                      }
+                    />
                   </span>
                   {course.description ? (
                     <span className="line-clamp-1 text-xs text-slate-500">

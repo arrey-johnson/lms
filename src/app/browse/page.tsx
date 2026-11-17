@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { EnrollButton } from "@/components/enroll-button";
 import { formatPrice } from "@/lib/utils";
+import { getPriceMarket } from "@/lib/market";
 import { courseStudyLabel } from "@/content/ai-foundations-module-1";
 import type { Course } from "@/lib/types";
 import { BrowseFilters } from "@/components/student/browse-filters";
@@ -24,6 +25,7 @@ export default async function BrowseCoursesPage({
   const { q } = await searchParams;
   const query = (q || "").trim().toLowerCase();
   const supabase = await createClient();
+  const market = await getPriceMarket();
 
   const [{ data: enrollments }, { data: allCourses }] = await Promise.all([
     supabase.from("enrollments").select("course_id").eq("user_id", userId),
@@ -132,7 +134,7 @@ export default async function BrowseCoursesPage({
                       </div>
                     )}
                     <span className="absolute left-2 top-2 rounded bg-surface-elevated/95 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 shadow-sm dark:bg-slate-950/90 dark:text-white">
-                      {formatPrice(priceCents)}
+                      {formatPrice(priceCents, market)}
                     </span>
                   </div>
                   <div className="flex flex-1 flex-col gap-3 p-3">
@@ -153,6 +155,7 @@ export default async function BrowseCoursesPage({
                       courseId={course.id}
                       courseTitle={course.title}
                       priceCents={priceCents}
+                      market={market}
                     />
                   </div>
                 </article>

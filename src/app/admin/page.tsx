@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, Users, Layers } from "lucide-react";
+import { BookOpen, Layers, Receipt, Users } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,6 +36,12 @@ export default async function AdminDashboardPage() {
       value: studentCount ?? 0,
       icon: Users,
     },
+    {
+      href: "/admin/payments",
+      label: "Payments",
+      value: "MoMo",
+      icon: Receipt,
+    },
   ];
 
   return (
@@ -49,7 +55,7 @@ export default async function AdminDashboardPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(({ href, label, value, icon: Icon }) => (
           <Link
             key={label}
@@ -77,6 +83,12 @@ export default async function AdminDashboardPage() {
           className="inline-flex h-11 items-center rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-800 hover:bg-surface-elevated dark:border-slate-600 dark:text-slate-100"
         >
           Manage students
+        </Link>
+        <Link
+          href="/admin/payments"
+          className="inline-flex h-11 items-center rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-800 hover:bg-surface-elevated dark:border-slate-600 dark:text-slate-100"
+        >
+          View payments
         </Link>
       </div>
     </div>

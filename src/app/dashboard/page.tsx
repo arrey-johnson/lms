@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { EnrollButton } from "@/components/enroll-button";
 import { formatPercent, formatPrice } from "@/lib/utils";
+import { formatXaf } from "@/lib/currency";
+import { listOpenPayments, syncOpenPaymentsForUser } from "@/lib/payments/sync";
+import { getPriceMarket } from "@/lib/market";
 import {
   courseStudyLabel,
   getCurriculum,
@@ -22,6 +25,9 @@ function coursePrice(course: { price_cents?: number | null }) {
 export default async function StudentDashboardPage() {
   const { profile, userId } = await requireStudent();
   const supabase = await createClient();
+  const market = await getPriceMarket();
+  await syncOpenPaymentsForUser(userId);
+  const openPayments = await listOpenPayments(userId);
 
   const [{ data: enrollments }, { data: allCourses }] = await Promise.all([
     supabase
@@ -234,6 +240,33 @@ export default async function StudentDashboardPage() {
           </div>
         </section>
 
+        {openPayments.length > 0 ? (
+          <div className="space-y-2">
+            {openPayments.map((payment) => {
+              const course = ((allCourses ?? []) as Course[]).find(
+                (item) => item.id === payment.course_id
+              );
+              return (
+                <Link
+                  key={payment.id}
+                  href={`/checkout/${payment.course_id}`}
+                  className="flex flex-col gap-1 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 transition hover:border-amber-300 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-50"
+                >
+                  <span>
+                    Finish payment for{" "}
+                    <strong>{course?.title || "your course"}</strong>
+                    {" · "}
+                    {formatXaf(payment.amount_xaf)}
+                  </span>
+                  <span className="font-semibold text-[#0070F8]">
+                    Approve on your phone
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        ) : null}
+
         {continueCourse ? (
           <section className="space-y-3">
             <div className="flex items-center justify-between gap-3">
@@ -410,7 +443,7 @@ export default async function StudentDashboardPage() {
                         </div>
                       )}
                       <span className="absolute left-2 top-2 rounded bg-surface-elevated/95 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 shadow-sm dark:bg-slate-950/90 dark:text-white">
-                        {formatPrice(priceCents)}
+                        {formatPrice(priceCents, market)}
                       </span>
                     </div>
                     <div className="flex flex-1 flex-col gap-2 p-3">
@@ -431,6 +464,7 @@ export default async function StudentDashboardPage() {
                         courseId={course.id}
                         courseTitle={course.title}
                         priceCents={priceCents}
+                        market={market}
                       />
                     </div>
                   </div>

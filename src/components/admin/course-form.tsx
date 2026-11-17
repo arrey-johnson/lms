@@ -83,7 +83,8 @@ export function CourseForm({
           placeholder="14.99"
         />
         <p className="mt-1 text-xs text-slate-500">
-          Courses are paid — price must be greater than $0.
+          Stored in USD. Visitors in Cameroon see FCFA automatically; everyone
+          else sees dollars.
         </p>
       </div>
       <div>
