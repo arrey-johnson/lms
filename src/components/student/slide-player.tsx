@@ -11,11 +11,13 @@ export function SlidePlayer({
   moduleId,
   slides,
   initialIndex = 0,
+  previewMode = false,
   onCompleted,
 }: {
   moduleId: string;
   slides: (Slide & { imageUrl?: string | null })[];
   initialIndex?: number;
+  previewMode?: boolean;
   onCompleted?: () => void;
 }) {
   const [index, setIndex] = useState(
@@ -34,6 +36,7 @@ export function SlidePlayer({
   }, [moduleId, initialIndex, slides.length]);
 
   function persist(nextIndex: number, completed?: boolean) {
+    if (previewMode) return;
     startTransition(async () => {
       const result = await saveSlideProgressAction({
         moduleId,
@@ -49,10 +52,10 @@ export function SlidePlayer({
   }
 
   useEffect(() => {
-    if (!slide || total === 0) return;
+    if (previewMode || !slide || total === 0) return;
     persist(index);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moduleId]);
+  }, [moduleId, previewMode]);
 
   function goTo(next: number) {
     const clamped = Math.max(0, Math.min(total - 1, next));

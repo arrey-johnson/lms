@@ -7,6 +7,7 @@ import { CourseThumbnailUpload } from "@/components/admin/course-thumbnail-uploa
 import { DeleteCourseButton } from "@/components/admin/delete-course-button";
 import { ModuleForm } from "@/components/admin/module-form";
 import { ModuleList } from "@/components/admin/module-list";
+import { getCurriculum } from "@/content/ai-foundations-module-1";
 import type { Course, Module, Slide } from "@/lib/types";
 
 export default async function AdminCourseDetailPage({
@@ -27,6 +28,7 @@ export default async function AdminCourseDetailPage({
   if (!course) notFound();
 
   const typedCourse = course as Course;
+  const tutorCurriculum = getCurriculum(typedCourse.curriculum_slug);
 
   let thumbnailUrl: string | null = null;
   if (typedCourse.thumbnail_path) {
@@ -72,7 +74,15 @@ export default async function AdminCourseDetailPage({
             {typedCourse.title}
           </h1>
         </div>
-        <DeleteCourseButton courseId={typedCourse.id} />
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Link
+            href={`/course/${typedCourse.id}`}
+            className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 text-sm dark:border-slate-600"
+          >
+            Preview as student
+          </Link>
+          <DeleteCourseButton courseId={typedCourse.id} />
+        </div>
       </div>
 
       <section className="rounded-2xl border border-[color:var(--border)] bg-surface-elevated p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
@@ -88,30 +98,56 @@ export default async function AdminCourseDetailPage({
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div>
-          <h2 className="font-[family-name:var(--font-display)] text-2xl text-slate-900 dark:text-white">
-            Modules
+      {tutorCurriculum ? (
+        <section className="rounded-2xl border border-[color:var(--border)] bg-surface-elevated p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+            {tutorCurriculum.title}
           </h2>
-          <p className="text-sm text-slate-500">
-            Drag to reorder modules. Build each lesson as a slide deck.
+          <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+            Students learn this course by conversation. The tutor asks questions,
+            corrects misconceptions, and moves on only after they show they
+            understand each lesson. Slide modules are hidden while this format
+            is selected. Use Preview as student to try the tutor.
           </p>
-        </div>
-        <ModuleList
-          courseId={typedCourse.id}
-          modules={typedModules}
-          slidesByModule={slidesByModule}
-        />
-      </section>
+          <ol className="mt-4 space-y-1 text-sm text-slate-600 dark:text-slate-300">
+            {tutorCurriculum.lessons.map((lesson) => (
+              <li key={lesson.id}>
+                <span className="font-medium text-slate-900 dark:text-white">
+                  {lesson.label}.
+                </span>{" "}
+                {lesson.title}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : (
+        <>
+          <section className="space-y-4">
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] text-2xl text-slate-900 dark:text-white">
+                Modules
+              </h2>
+              <p className="text-sm text-slate-500">
+                Drag to reorder modules. Build each lesson as a slide deck.
+              </p>
+            </div>
+            <ModuleList
+              courseId={typedCourse.id}
+              modules={typedModules}
+              slidesByModule={slidesByModule}
+            />
+          </section>
 
-      <section className="rounded-2xl border border-[color:var(--border)] bg-surface-elevated p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-          Add module
-        </h2>
-        <div className="mt-4">
-          <ModuleForm courseId={typedCourse.id} />
-        </div>
-      </section>
+          <section className="rounded-2xl border border-[color:var(--border)] bg-surface-elevated p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+              Add module
+            </h2>
+            <div className="mt-4">
+              <ModuleForm courseId={typedCourse.id} />
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }

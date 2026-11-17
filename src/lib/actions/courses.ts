@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurriculum } from "@/content/ai-foundations-module-1";
 
 function parsePriceCents(formData: FormData): number | { error: string } {
   const raw = String(formData.get("price") || "").trim();
@@ -14,27 +15,55 @@ function parsePriceCents(formData: FormData): number | { error: string } {
   return Math.round(dollars * 100);
 }
 
+function missingCurriculumColumn(message: string) {
+  return /curriculum_slug|schema cache/i.test(message);
+}
+
+function courseWriteError(message: string) {
+  if (missingCurriculumColumn(message)) {
+    return "Run supabase/tutor.sql in the Supabase SQL editor, then save again.";
+  }
+  return message;
+}
+
+function parseCurriculumSlug(formData: FormData) {
+  const slug = String(formData.get("curriculum_slug") || "").trim();
+  if (!slug) return null;
+  if (!getCurriculum(slug)) return { error: "Unknown teaching format." };
+  return slug;
+}
+
 export async function createCourseAction(formData: FormData) {
   await requireAdmin();
   const title = String(formData.get("title") || "").trim();
   const description = String(formData.get("description") || "").trim();
   const priceCents = parsePriceCents(formData);
+  const curriculumSlug = parseCurriculumSlug(formData);
 
   if (!title) return { error: "Title is required." };
   if (typeof priceCents === "object") return priceCents;
+  if (curriculumSlug && typeof curriculumSlug === "object") return curriculumSlug;
 
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const details = {
+    title,
+    description: description || null,
+    price_cents: priceCents,
+  };
+  let { data, error } = await supabase
     .from("courses")
-    .insert({
-      title,
-      description: description || null,
-      price_cents: priceCents,
-    })
+    .insert({ ...details, curriculum_slug: curriculumSlug })
     .select("id")
     .single();
 
-  if (error) return { error: error.message };
+  if (error && !curriculumSlug && missingCurriculumColumn(error.message)) {
+    const retry = await supabase.from("courses").insert(details).select("id").single();
+    data = retry.data;
+    error = retry.error;
+  }
+
+  if (error) return { error: courseWriteError(error.message) };
+  if (!data) return { error: "Could not create the course." };
 
   revalidatePath("/admin");
   revalidatePath("/admin/courses");
@@ -47,21 +76,29 @@ export async function updateCourseAction(formData: FormData) {
   const title = String(formData.get("title") || "").trim();
   const description = String(formData.get("description") || "").trim();
   const priceCents = parsePriceCents(formData);
+  const curriculumSlug = parseCurriculumSlug(formData);
 
   if (!id || !title) return { error: "Title is required." };
   if (typeof priceCents === "object") return priceCents;
+  if (curriculumSlug && typeof curriculumSlug === "object") return curriculumSlug;
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const details = {
+    title,
+    description: description || null,
+    price_cents: priceCents,
+  };
+  let { error } = await supabase
     .from("courses")
-    .update({
-      title,
-      description: description || null,
-      price_cents: priceCents,
-    })
+    .update({ ...details, curriculum_slug: curriculumSlug })
     .eq("id", id);
 
-  if (error) return { error: error.message };
+  if (error && !curriculumSlug && missingCurriculumColumn(error.message)) {
+    const retry = await supabase.from("courses").update(details).eq("id", id);
+    error = retry.error;
+  }
+
+  if (error) return { error: courseWriteError(error.message) };
 
   revalidatePath("/admin");
   revalidatePath("/admin/courses");

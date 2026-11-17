@@ -88,12 +88,18 @@ export function CoursePlayer({
   courseThumbnailUrl,
   modules,
   bypassLocks = false,
+  previewMode = false,
+  backHref = "/dashboard",
+  backLabel = "← Back to courses",
 }: {
   courseTitle: string;
   courseDescription: string | null;
   courseThumbnailUrl?: string | null;
   modules: ModuleWithProgress[];
   bypassLocks?: boolean;
+  previewMode?: boolean;
+  backHref?: string;
+  backLabel?: string;
 }) {
   const router = useRouter();
   const progressByModule = useMemo(() => {
@@ -135,6 +141,12 @@ export function CoursePlayer({
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {previewMode ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
+          Admin preview — you are viewing this course as a student would. All
+          modules are unlocked and progress is not saved.
+        </div>
+      ) : null}
       <div className="overflow-hidden rounded-2xl border border-[color:var(--border)] bg-surface-elevated shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-4 p-4 sm:flex-row sm:flex-wrap sm:items-start sm:p-5">
           {courseThumbnailUrl ? (
@@ -149,10 +161,10 @@ export function CoursePlayer({
           ) : null}
           <div className="min-w-0 flex-1">
             <Link
-              href="/dashboard"
+              href={backHref}
               className="text-sm text-blue-700 hover:underline dark:text-blue-400"
             >
-              ← Back to courses
+              {backLabel}
             </Link>
             <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
               <div className="min-w-0">
@@ -165,9 +177,15 @@ export function CoursePlayer({
                   </p>
                 ) : null}
               </div>
-              <p className="w-fit shrink-0 rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-950 dark:text-blue-200">
-                {formatPercent(overall)} complete
-              </p>
+              {!previewMode ? (
+                <p className="w-fit shrink-0 rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-950 dark:text-blue-200">
+                  {formatPercent(overall)} complete
+                </p>
+              ) : (
+                <p className="w-fit shrink-0 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+                  Preview mode
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -209,8 +227,13 @@ export function CoursePlayer({
               key={active?.id}
               moduleId={active?.id || ""}
               slides={active?.slides ?? []}
-              initialIndex={Math.floor(active?.progress?.last_position || 0)}
-              onCompleted={() => router.refresh()}
+              initialIndex={
+                previewMode
+                  ? 0
+                  : Math.floor(active?.progress?.last_position || 0)
+              }
+              previewMode={previewMode}
+              onCompleted={previewMode ? undefined : () => router.refresh()}
             />
           )}
           <div>

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { CourseForm } from "@/components/admin/course-form";
 import { DeleteCourseButton } from "@/components/admin/delete-course-button";
 import { formatPrice } from "@/lib/utils";
+import { courseStudyLabel } from "@/content/ai-foundations-module-1";
 
 export default async function AdminCoursesPage() {
   await requireAdmin();
@@ -64,10 +65,16 @@ export default async function AdminCoursesPage() {
                       ? course.price_cents
                       : 1499
                   )}{" "}
-                  · {moduleCount} module{moduleCount === 1 ? "" : "s"}
+                  · {courseStudyLabel(course.curriculum_slug, moduleCount)}
                 </p>
               </div>
               <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <Link
+                  href={`/course/${course.id}`}
+                  className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 text-sm dark:border-slate-600"
+                >
+                  Preview
+                </Link>
                 <Link
                   href={`/admin/courses/${course.id}`}
                   className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 text-sm dark:border-slate-600"

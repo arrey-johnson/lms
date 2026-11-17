@@ -2,6 +2,10 @@ import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { StudentManager } from "@/components/admin/student-manager";
+import {
+  getCurriculum,
+  masteredLessonCount,
+} from "@/content/ai-foundations-module-1";
 import type { Course, StudentWithProgress } from "@/lib/types";
 
 export default async function AdminStudentsPage() {
@@ -22,12 +26,16 @@ export default async function AdminStudentsPage() {
 
   const studentIds = (students ?? []).map((s) => s.id);
 
-  const [{ data: enrollments }, { data: allModules }, { data: progress }] =
+  const tutorCourseIds = ((courses ?? []) as Course[])
+    .filter((course) => getCurriculum(course.curriculum_slug))
+    .map((course) => course.id);
+
+  const [{ data: enrollments }, { data: allModules }, { data: progress }, { data: tutorSessions }] =
     await Promise.all([
       studentIds.length
         ? admin
             .from("enrollments")
-            .select("user_id, course_id, courses(title)")
+            .select("user_id, course_id, courses(title, curriculum_slug)")
             .in("user_id", studentIds)
         : Promise.resolve({ data: [] as never[] }),
       admin.from("modules").select("id, course_id"),
@@ -38,6 +46,13 @@ export default async function AdminStudentsPage() {
             .in("user_id", studentIds)
             .eq("completed", true)
         : Promise.resolve({ data: [] as never[] }),
+      studentIds.length && tutorCourseIds.length
+        ? admin
+            .from("tutor_sessions")
+            .select("user_id, course_id, lesson_index, completed")
+            .in("user_id", studentIds)
+            .in("course_id", tutorCourseIds)
+        : Promise.resolve({ data: [] as never[] }),
     ]);
 
   const modulesByCourse = new Map<string, string[]>();
@@ -47,28 +62,67 @@ export default async function AdminStudentsPage() {
     modulesByCourse.set(mod.course_id, list);
   }
 
-  const enriched: StudentWithProgress[] = (students ?? []).map((student) => {
-    const studentEnrollments = (enrollments ?? [])
-      .filter((e) => e.user_id === student.id)
-      .map((e) => ({
-        course_id: e.course_id,
-        course_title:
-          (e.courses as { title?: string } | null)?.title || "Course",
-      }));
+  type EnrollmentRow = {
+    user_id: string;
+    course_id: string;
+    courses: { title?: string; curriculum_slug?: string | null } | null;
+  };
+  type SessionRow = {
+    user_id: string;
+    course_id: string;
+    lesson_index: number;
+    completed: boolean;
+  };
 
-    const enrolledModuleIds = studentEnrollments.flatMap(
-      (e) => modulesByCourse.get(e.course_id) || []
+  const enrollmentRows = (enrollments ?? []) as EnrollmentRow[];
+  const sessionRows = (tutorSessions ?? []) as SessionRow[];
+
+  const enriched: StudentWithProgress[] = (students ?? []).map((student) => {
+    const studentEnrollments = enrollmentRows.filter(
+      (enrollment) => enrollment.user_id === student.id
     );
-    const completed = (progress ?? []).filter(
-      (p) =>
-        p.user_id === student.id && enrolledModuleIds.includes(p.module_id)
-    ).length;
+    let completed = 0;
+    let total = 0;
+    let tutorLessons = 0;
+    let slideModules = 0;
+
+    for (const enrollment of studentEnrollments) {
+      const curriculum = getCurriculum(enrollment.courses?.curriculum_slug);
+      if (curriculum) {
+        const lessonCount = curriculum.lessons.length;
+        const session = sessionRows.find(
+          (row) =>
+            row.user_id === student.id && row.course_id === enrollment.course_id
+        );
+        tutorLessons += lessonCount;
+        total += lessonCount;
+        completed += masteredLessonCount(
+          session?.lesson_index ?? 0,
+          Boolean(session?.completed),
+          lessonCount
+        );
+        continue;
+      }
+
+      const moduleIds = modulesByCourse.get(enrollment.course_id) || [];
+      slideModules += moduleIds.length;
+      total += moduleIds.length;
+      completed += (progress ?? []).filter(
+        (row) =>
+          row.user_id === student.id && moduleIds.includes(row.module_id)
+      ).length;
+    }
 
     return {
       ...(student as StudentWithProgress),
-      enrollments: studentEnrollments,
+      enrollments: studentEnrollments.map((enrollment) => ({
+        course_id: enrollment.course_id,
+        course_title: enrollment.courses?.title || "Course",
+      })),
       completed_modules: completed,
-      total_modules: enrolledModuleIds.length,
+      total_modules: total,
+      progress_unit:
+        tutorLessons > 0 && slideModules === 0 ? "lessons" : "modules",
     };
   });
 

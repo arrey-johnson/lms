@@ -160,7 +160,8 @@ function StudentCard({
           </h3>
           <p className="text-sm text-slate-500">{student.email}</p>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            Progress: {student.completed_modules}/{student.total_modules} modules (
+            Progress: {student.completed_modules}/{student.total_modules}{" "}
+            {student.progress_unit ?? "modules"} (
             {formatPercent(progress)})
             {student.disabled ? (
               <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-200">

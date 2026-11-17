@@ -1,10 +1,14 @@
+import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { requireStudent } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { CoursePlayer } from "@/components/student/course-player";
+import { TutorPlayer } from "@/components/student/tutor-player";
+import { loadTutorSession } from "@/lib/actions/tutor";
+import { getCurriculum } from "@/content/ai-foundations-module-1";
 import { isModuleUnlocked } from "@/lib/module-access";
-import type { Module, Progress, Slide } from "@/lib/types";
+import type { Course, Module, Progress, Slide } from "@/lib/types";
 
 export default async function CoursePage({
   params,
@@ -36,6 +40,59 @@ export default async function CoursePage({
     .maybeSingle();
 
   if (!course) notFound();
+
+  const typedCourse = course as Course;
+  const curriculum = getCurriculum(typedCourse.curriculum_slug);
+  const shell = (children: ReactNode) => (
+    <AppShell
+      wide={Boolean(curriculum)}
+      brandHref={isAdmin ? "/admin" : "/dashboard"}
+      userLabel={profile.full_name || profile.email || "Student"}
+      avatarUrl={profile.avatar_url}
+      nav={
+        isAdmin
+          ? [
+              { href: "/admin", label: "Overview" },
+              { href: "/admin/courses", label: "Courses" },
+              { href: "/admin/students", label: "Students" },
+            ]
+          : [
+              { href: "/dashboard", label: "My courses", shortLabel: "Courses" },
+              { href: "/browse", label: "Browse courses", shortLabel: "Browse" },
+            ]
+      }
+    >
+      {children}
+    </AppShell>
+  );
+
+  if (curriculum) {
+    const session = await loadTutorSession(courseId);
+    return shell(
+      session.error ? (
+        <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {session.error}
+        </p>
+      ) : (
+        <TutorPlayer
+          courseId={courseId}
+          courseTitle={typedCourse.title}
+          courseDescription={typedCourse.description}
+          lessons={curriculum.lessons.map((lesson) => ({
+            id: lesson.id,
+            label: lesson.label,
+            title: lesson.title,
+          }))}
+          initialMessages={session.messages}
+          initialLessonIndex={session.lessonIndex}
+          initialCompleted={session.completed}
+          previewMode={isAdmin}
+          backHref={isAdmin ? `/admin/courses/${courseId}` : "/dashboard"}
+          backLabel={isAdmin ? "← Back to course editor" : "← Back to courses"}
+        />
+      )
+    );
+  }
 
   const { data: modules } = await supabase
     .from("modules")
@@ -75,10 +132,10 @@ export default async function CoursePage({
   }
 
   let courseThumbnailUrl: string | null = null;
-  if (course.thumbnail_path) {
+  if (typedCourse.thumbnail_path) {
     const { data } = await supabase.storage
       .from("course-videos")
-      .createSignedUrl(course.thumbnail_path, 60 * 60);
+      .createSignedUrl(typedCourse.thumbnail_path, 60 * 60);
     courseThumbnailUrl = data?.signedUrl ?? null;
   }
 
@@ -120,31 +177,16 @@ export default async function CoursePage({
     })
   );
 
-  return (
-    <AppShell
-      brandHref={isAdmin ? "/admin" : "/dashboard"}
-      userLabel={profile.full_name || profile.email || "Student"}
-      avatarUrl={profile.avatar_url}
-      nav={
-        isAdmin
-          ? [
-              { href: "/admin", label: "Overview" },
-              { href: "/admin/courses", label: "Courses" },
-              { href: "/admin/students", label: "Students" },
-            ]
-          : [
-              { href: "/dashboard", label: "My courses", shortLabel: "Courses" },
-              { href: "/browse", label: "Browse courses", shortLabel: "Browse" },
-            ]
-      }
-    >
-      <CoursePlayer
-        courseTitle={course.title}
-        courseDescription={course.description}
-        courseThumbnailUrl={courseThumbnailUrl}
-        modules={modulesWithSlides}
-        bypassLocks={isAdmin}
-      />
-    </AppShell>
+  return shell(
+    <CoursePlayer
+      courseTitle={typedCourse.title}
+      courseDescription={typedCourse.description}
+      courseThumbnailUrl={courseThumbnailUrl}
+      modules={modulesWithSlides}
+      bypassLocks={isAdmin}
+      previewMode={isAdmin}
+      backHref={isAdmin ? `/admin/courses/${courseId}` : "/dashboard"}
+      backLabel={isAdmin ? "← Back to course editor" : "← Back to courses"}
+    />
   );
 }

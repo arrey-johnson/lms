@@ -17,7 +17,11 @@ export async function saveSlideProgressAction(input: {
   }
 
   const supabase = await createClient();
-  const isAdmin = profile.role === "admin";
+
+  // Admins preview courses without enrollment; do not write progress rows.
+  if (profile.role === "admin") {
+    return { success: true, completed: false };
+  }
 
   const { data: currentModule } = await supabase
     .from("modules")
@@ -55,29 +59,27 @@ export async function saveSlideProgressAction(input: {
     slide_count: slideCountByModule.get(m.id) || 0,
   }));
 
-  if (!isAdmin) {
-    const { data: progressRows } = moduleIds.length
-      ? await supabase
-          .from("progress")
-          .select("*")
-          .eq("user_id", userId)
-          .in("module_id", moduleIds)
-      : { data: [] as Progress[] };
+  const { data: progressRows } = moduleIds.length
+    ? await supabase
+        .from("progress")
+        .select("*")
+        .eq("user_id", userId)
+        .in("module_id", moduleIds)
+    : { data: [] as Progress[] };
 
-    const progressByModule = new Map(
-      (progressRows ?? []).map((p) => [p.module_id, p as Progress])
-    );
+  const progressByModule = new Map(
+    (progressRows ?? []).map((p) => [p.module_id, p as Progress])
+  );
 
-    const unlocked = isModuleUnlocked(
-      modulesWithCounts,
-      input.moduleId,
-      progressByModule,
-      false
-    );
+  const unlocked = isModuleUnlocked(
+    modulesWithCounts,
+    input.moduleId,
+    progressByModule,
+    false
+  );
 
-    if (!unlocked) {
-      return { error: "Finish the previous module before continuing." };
-    }
+  if (!unlocked) {
+    return { error: "Finish the previous module before continuing." };
   }
 
   const slideCount = Math.max(0, input.slideCount);

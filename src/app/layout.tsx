@@ -30,7 +30,7 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   title: "Promptstack Classroom",
   description:
-    "Build career-ready skills with courses made by Promptstack. Buy the courses that move you forward — and train your whole team in one purchase.",
+    "Career skills that stick — technology, AI, finance, forex, digital marketing, management, and more. Promptstack Classroom trains you with guided practice, an interactive tutor, and mastery checkpoints. Train your whole team in one purchase.",
   icons: {
     icon: [{ url: "/brand/favicon-32.png", sizes: "32x32", type: "image/png" }],
     apple: [{ url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" }],

@@ -5,6 +5,12 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { EnrollButton } from "@/components/enroll-button";
 import { formatPercent, formatPrice } from "@/lib/utils";
+import {
+  courseStudyLabel,
+  getCurriculum,
+  masteredLessonCount,
+  tutorProgressPercent,
+} from "@/content/ai-foundations-module-1";
 import type { Course } from "@/lib/types";
 
 function coursePrice(course: { price_cents?: number | null }) {
@@ -56,6 +62,31 @@ export default async function StudentDashboardPage() {
     (progress ?? []).filter((p) => p.completed).map((p) => p.module_id)
   );
 
+  const enrolledTutorIds = (enrollments ?? [])
+    .map((enrollment) => enrollment.courses as unknown as Course | null)
+    .filter((course): course is Course =>
+      Boolean(course && getCurriculum(course.curriculum_slug))
+    )
+    .map((course) => course.id);
+
+  const { data: tutorSessions } = enrolledTutorIds.length
+    ? await supabase
+        .from("tutor_sessions")
+        .select("course_id, lesson_index, completed")
+        .eq("user_id", userId)
+        .in("course_id", enrolledTutorIds)
+    : {
+        data: [] as {
+          course_id: string;
+          lesson_index: number;
+          completed: boolean;
+        }[],
+      };
+
+  const tutorByCourse = new Map(
+    (tutorSessions ?? []).map((session) => [session.course_id, session])
+  );
+
   const modulesByCourse = new Map<string, string[]>();
   for (const mod of modules ?? []) {
     const list = modulesByCourse.get(mod.course_id) || [];
@@ -89,6 +120,21 @@ export default async function StudentDashboardPage() {
     .map((enrollment) => {
       const course = enrollment.courses as unknown as Course | null;
       if (!course) return null;
+      const curriculum = getCurriculum(course.curriculum_slug);
+      if (curriculum) {
+        const session = tutorByCourse.get(course.id);
+        const total = curriculum.lessons.length;
+        const lessonIndex = session?.lesson_index ?? 0;
+        const sessionCompleted = Boolean(session?.completed);
+        return {
+          course,
+          completed: masteredLessonCount(lessonIndex, sessionCompleted, total),
+          total,
+          pct: tutorProgressPercent(lessonIndex, sessionCompleted, total),
+          thumb: thumbnails.get(course.id) ?? null,
+          unit: "lessons" as const,
+        };
+      }
       const courseModules = modulesByCourse.get(course.id) || [];
       const completed = courseModules.filter((id) => completedSet.has(id)).length;
       const pct =
@@ -101,6 +147,7 @@ export default async function StudentDashboardPage() {
         total: courseModules.length,
         pct,
         thumb: thumbnails.get(course.id) ?? null,
+        unit: "modules" as const,
       };
     })
     .filter(Boolean) as {
@@ -109,6 +156,7 @@ export default async function StudentDashboardPage() {
     total: number;
     pct: number;
     thumb: string | null;
+    unit: "lessons" | "modules";
   }[];
 
   const continueCourse =
@@ -233,8 +281,8 @@ export default async function StudentDashboardPage() {
                     />
                   </div>
                   <p className="mt-2 text-xs text-slate-400">
-                    {continueCourse.completed} of {continueCourse.total} modules
-                    completed
+                    {continueCourse.completed} of {continueCourse.total}{" "}
+                    {continueCourse.unit} completed
                   </p>
                 </div>
               </div>
@@ -376,7 +424,7 @@ export default async function StudentDashboardPage() {
                           </p>
                         ) : null}
                         <p className="mt-2 text-[11px] text-slate-400">
-                          {moduleCount} module{moduleCount === 1 ? "" : "s"}
+                          {courseStudyLabel(course.curriculum_slug, moduleCount)}
                         </p>
                       </div>
                       <EnrollButton

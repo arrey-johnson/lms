@@ -7,27 +7,31 @@ import { cn } from "@/lib/utils";
 const slides = [
   {
     image: "/images/sample-recorded-class.jpg",
-    eyebrow: "Skill path · AI productivity",
-    title: "Learn skills that compound",
-    description: "Master practical AI workflows you can use across any career.",
+    eyebrow: "Catalog · Every career path",
+    title: "Tech, finance, forex, marketing — and more",
+    description:
+      "One classroom for the skills professionals need next, built by Promptstack.",
   },
   {
     image: "/images/slide-design-systems.jpg",
-    eyebrow: "Skill path · Design thinking",
-    title: "Product principles that stick",
-    description: "Turn vague ideas into clear product thinking with guided lessons.",
+    eyebrow: "Method · Guided practice",
+    title: "Train with a tutor, not a playlist",
+    description:
+      "Interactive lessons and mastery checkpoints make sure the skill sticks.",
   },
   {
     image: "/images/slide-data-literacy.jpg",
-    eyebrow: "Skill path · Data literacy",
-    title: "Read the numbers with confidence",
-    description: "Build decision-ready insight from raw information and dashboards.",
+    eyebrow: "Method · Real workflows",
+    title: "Practice the work you’ll actually do",
+    description:
+      "Hands-on labs and reusable systems — not theory you’ll forget.",
   },
   {
     image: "/images/slide-product-design.jpg",
-    eyebrow: "Skill path · Product design",
-    title: "Craft interfaces people love",
-    description: "Level up communication, design, and delivery with AI-assisted practice.",
+    eyebrow: "Method · Teams",
+    title: "Upskill people who ship work",
+    description:
+      "Give your team a shared training system — with proof of mastery.",
   },
 ];
 
@@ -45,7 +49,7 @@ export function HeroCarousel() {
 
   return (
     <div
-      className="relative aspect-video overflow-hidden rounded-xl bg-slate-900"
+      className="relative aspect-[16/10] max-h-[280px] overflow-hidden rounded-xl bg-slate-900 sm:max-h-[320px] lg:aspect-[5/3] lg:max-h-[340px]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -65,22 +69,24 @@ export function HeroCarousel() {
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-slate-950/40" />
-          <div className="relative flex h-full flex-col justify-between p-5 text-white">
-            <div className="flex items-center gap-2 text-sm text-blue-50">
-              <Clapperboard className="h-4 w-4" />
+          <div className="relative flex h-full flex-col justify-between p-4 text-white sm:p-5">
+            <div className="flex items-center gap-2 text-xs text-blue-50 sm:text-sm">
+              <Clapperboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {slide.eyebrow}
             </div>
             <div className="max-w-md">
-              <p className="font-[family-name:var(--font-display)] text-2xl leading-tight">
+              <p className="font-[family-name:var(--font-display)] text-xl leading-tight sm:text-2xl">
                 {slide.title}
               </p>
-              <p className="mt-1 text-sm text-slate-300">{slide.description}</p>
+              <p className="mt-1 line-clamp-2 text-xs text-slate-300 sm:text-sm">
+                {slide.description}
+              </p>
             </div>
           </div>
         </div>
       ))}
 
-      <div className="absolute bottom-4 right-4 z-10 flex items-center gap-2">
+      <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2 sm:bottom-4 sm:right-4">
         {slides.map((slide, i) => (
           <button
             key={slide.image}

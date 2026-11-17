@@ -16,8 +16,8 @@ export default function SignupPage() {
             Create your account
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Join Promptstack Classroom and start building in-demand skills with
-            AI-powered learning.
+            Join for technology, finance, forex, digital marketing, management,
+            and more — taught with guided practice you can use on the job.
           </p>
           <div className="mt-6">
             <SignupForm />

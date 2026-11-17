@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { CURRICULUM_OPTIONS } from "@/content/curriculum-options";
 import type { Course } from "@/lib/types";
 
 export function CourseForm({
@@ -32,7 +33,7 @@ export function CourseForm({
           const result = course
             ? await updateCourseAction(formData)
             : await createCourseAction(formData);
-          if (result?.error) {
+          if ("error" in result && result.error) {
             setError(result.error);
             return;
           }
@@ -83,6 +84,24 @@ export function CourseForm({
         />
         <p className="mt-1 text-xs text-slate-500">
           Courses are paid — price must be greater than $0.
+        </p>
+      </div>
+      <div>
+        <Label htmlFor="curriculum_slug">Teaching format</Label>
+        <select
+          id="curriculum_slug"
+          name="curriculum_slug"
+          defaultValue={course?.curriculum_slug ?? ""}
+          className="flex h-10 w-full rounded-lg border border-[color:var(--border)] bg-surface-elevated px-3 text-sm text-slate-900 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+        >
+          {CURRICULUM_OPTIONS.map((option) => (
+            <option key={option.slug || "slides"} value={option.slug}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-slate-500">
+          The interactive tutor replaces the slide player for this course.
         </p>
       </div>
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}

@@ -17,7 +17,16 @@ export interface Course {
   thumbnail_path: string | null;
   /** Price in USD cents (always > 0 — courses are never free) */
   price_cents: number;
+  /** Set to a tutor curriculum slug to replace the slide player. */
+  curriculum_slug?: string | null;
   created_at: string;
+}
+
+export interface TutorMessage {
+  role: "tutor" | "learner";
+  content: string;
+  lessonId: string;
+  via?: "voice";
 }
 
 export interface Module {
@@ -71,4 +80,5 @@ export interface StudentWithProgress extends Profile {
   enrollments: { course_id: string; course_title: string }[];
   completed_modules: number;
   total_modules: number;
+  progress_unit?: "modules" | "lessons";
 }

@@ -31,7 +31,7 @@ export default async function LoginPage({
             Sign in
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Welcome back to your AI-powered learning space.
+            Welcome back to Promptstack Classroom.
           </p>
           <div className="mt-6">
             <LoginForm

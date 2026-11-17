@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { EnrollButton } from "@/components/enroll-button";
 import { formatPrice } from "@/lib/utils";
+import { courseStudyLabel } from "@/content/ai-foundations-module-1";
 import type { Course } from "@/lib/types";
 import { BrowseFilters } from "@/components/student/browse-filters";
 
@@ -145,7 +146,7 @@ export default async function BrowseCoursesPage({
                         </p>
                       ) : null}
                       <p className="mt-2 text-[11px] text-slate-400">
-                        {moduleCount} module{moduleCount === 1 ? "" : "s"}
+                        {courseStudyLabel(course.curriculum_slug, moduleCount)}
                       </p>
                     </div>
                     <EnrollButton
