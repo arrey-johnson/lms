@@ -1,5 +1,4 @@
 import { CurrencySwitcher } from "@/components/currency-switcher";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { NavLinks, type NavItem } from "@/components/nav-links";
 import { MobileNav } from "@/components/mobile-nav";
 import { BrandLogo } from "@/components/brand-logo";
@@ -39,7 +38,6 @@ export function AppShell({
           </div>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
             <CurrencySwitcher />
-            <ThemeToggle />
             <UserMenu userLabel={userLabel} avatarUrl={avatarUrl} />
           </div>
         </div>

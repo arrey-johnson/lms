@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Building2, GraduationCap, ShieldCheck } from "lucide-react";
 import { CurrencySwitcher } from "@/components/currency-switcher";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { BrandLogo } from "@/components/brand-logo";
 import { CourseSearch } from "@/components/course-search";
 import { HeroCarousel } from "@/components/hero-carousel";
@@ -25,7 +24,6 @@ export default function HomePage() {
           </div>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
             <CurrencySwitcher />
-            <ThemeToggle />
             <Link
               href="/login"
               className="hidden h-10 items-center rounded-lg px-3 text-sm font-medium text-slate-700 transition hover:bg-surface-elevated/80 sm:inline-flex sm:px-4 dark:text-slate-200 dark:hover:bg-slate-800"

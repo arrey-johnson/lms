@@ -9,10 +9,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f3f6fa" },
-    { media: "(prefers-color-scheme: dark)", color: "#020617" },
-  ],
+  themeColor: "#020617",
 };
 
 const outfit = Outfit({
@@ -39,8 +36,6 @@ export const metadata: Metadata = {
   },
 };
 
-const themeInitScript = `(function(){try{var t=localStorage.getItem('lms-theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`;
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -51,10 +46,9 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${outfit.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${outfit.variable} ${fraunces.variable} dark h-full antialiased`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <link rel="preload" href="/brand/icon.png" as="image" type="image/png" />
       </head>
       <body className="min-h-full bg-background font-sans text-foreground" suppressHydrationWarning>
