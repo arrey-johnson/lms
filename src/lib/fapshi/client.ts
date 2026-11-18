@@ -106,13 +106,6 @@ async function fapshiRequest<T>(
   return { ok: true, status: response.status, data: (data || {}) as T };
 }
 
-export function isDirectPayUnavailable(message: string, status?: number) {
-  if (status === 403) return true;
-  return /direct[-\s]*pay|not enabled|not activated|disabled|deactivated|not available|forbidden/i.test(
-    message
-  );
-}
-
 export async function directPay(
   environment: FapshiEnvironment,
   input: {
@@ -134,30 +127,6 @@ export async function directPay(
       medium: fapshiMedium(input.wallet),
       name: input.name || undefined,
       email: input.email || undefined,
-      userId: input.userId,
-      externalId: input.externalId,
-      message: input.message,
-    },
-  });
-}
-
-export async function initiatePay(
-  environment: FapshiEnvironment,
-  input: {
-    amount: number;
-    email?: string;
-    redirectUrl?: string;
-    userId: string;
-    externalId: string;
-    message: string;
-  }
-) {
-  return fapshiRequest<FapshiTransaction>(environment, "/initiate-pay", {
-    method: "POST",
-    body: {
-      amount: input.amount,
-      email: input.email || undefined,
-      redirectUrl: input.redirectUrl || undefined,
       userId: input.userId,
       externalId: input.externalId,
       message: input.message,

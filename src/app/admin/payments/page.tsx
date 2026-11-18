@@ -52,7 +52,7 @@ export default async function AdminPaymentsPage() {
           Payments
         </h1>
         <p className="mt-1 text-slate-500">
-          Mobile money is collected through Fapshi. Cards are collected through CamerPay. A confirmed payment enrolls the student.
+          Mobile money is a Fapshi PIN prompt on the student’s phone. Cards are collected through CamerPay. A confirmed payment enrolls the student.
         </p>
       </div>
 

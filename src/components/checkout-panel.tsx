@@ -295,7 +295,7 @@ export function CheckoutPanel({
           </div>
           <p className="mt-2 text-xs leading-5 text-slate-400">
             {previewWallet
-              ? `We’ll request ${walletLabel(previewWallet)} on this number.`
+              ? `A ${walletLabel(previewWallet)} PIN prompt goes to this number. You stay on this page.`
               : "MTN numbers start with 67, 68, or 650–654. Orange numbers start with 69 or 655–659."}
           </p>
         </>

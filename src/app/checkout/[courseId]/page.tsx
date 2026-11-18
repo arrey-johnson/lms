@@ -105,8 +105,13 @@ export default async function CheckoutPage({
     .select("id", { count: "exact", head: true })
     .eq("course_id", courseId);
 
+  const hostedMomo =
+    Boolean(payment?.checkout_url) &&
+    !isCard &&
+    payment?.status !== "failed" &&
+    payment?.status !== "expired";
   const initial =
-    payment && (wallet || isCard)
+    payment && (wallet || isCard) && !hostedMomo
       ? {
           paymentId: payment.id,
           status: payment.status,
@@ -164,9 +169,9 @@ export default async function CheckoutPage({
               {courseStudyLabel(course.curriculum_slug, count || 0)}
             </p>
             <p className="text-sm leading-6 text-slate-500">
-              Pay with MTN or Orange Money through Fapshi, or with Visa and Mastercard
-              through CamerPay. The price can be shown in FCFA, USD, or EUR. The
-              amount collected is always in FCFA.
+              MTN and Orange Money send a PIN prompt to the phone, and you stay on
+              this page. Visa and Mastercard continue on CamerPay. The price can
+              be shown in FCFA, USD, or EUR. The amount collected is always in FCFA.
             </p>
           </div>
         </section>

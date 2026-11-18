@@ -1,12 +1,9 @@
 import { randomUUID } from "crypto";
-import { checkoutReturnUrl } from "@/lib/app-url";
 import { courseAmountXaf } from "@/lib/currency";
 import {
   activeFapshiEnvironment,
   directPay,
   findTransactionByExternalId,
-  initiatePay,
-  isDirectPayUnavailable,
   type FapshiTransaction,
 } from "@/lib/fapshi/client";
 import { classifyWallet, normalizeCameroonPhone } from "@/lib/fapshi/phone";
@@ -174,6 +171,9 @@ export async function startMobileMoneyCheckout(input: {
   }
 
   let payment = openRow as PaymentRecord | null;
+  // An older row with a checkout link is the hosted Fapshi page. Direct Pay
+  // keeps the student here, so that row is not resumed.
+  if (payment?.checkout_url) payment = null;
 
   if (payment?.trans_id) {
     const storedWallet = payment.phone ? classifyWallet(payment.phone) || wallet : wallet;
@@ -189,8 +189,8 @@ export async function startMobileMoneyCheckout(input: {
     if (!recovered.ok && recovered.status === 0) {
       return { ok: false, error: recovered.message };
     }
-    if (recovered.ok && recovered.data?.transId) {
-      const saved = await saveCharge(payment, recovered.data, payment.checkout_url);
+    if (recovered.ok && recovered.data?.transId && !recovered.data.link) {
+      const saved = await saveCharge(payment, recovered.data, null);
       await claimRequestEmail(saved, input.fullName, course.title);
       return toResult(saved, wallet);
     }
@@ -304,71 +304,22 @@ async function chargeFapshi(input: {
     return { ok: true, payment };
   }
 
-  if (!direct.ok && direct.status === 0) {
-    const recovered = await findTransactionByExternalId(
-      input.environment,
-      input.payment.user_id,
-      input.payment.external_id
-    );
-    if (recovered.ok && recovered.data?.transId) {
-      const payment = await saveCharge(input.payment, recovered.data, null);
-      return { ok: true, payment };
-    }
-    return { ok: false, error: direct.message };
-  }
-
   const directMessage = direct.ok
     ? "Fapshi accepted the payment but did not return a transaction id."
     : direct.message;
 
-  if (!direct.ok && !isDirectPayUnavailable(direct.message, direct.status)) {
+  if (!direct.ok) {
     const recovered = await findTransactionByExternalId(
       input.environment,
       input.payment.user_id,
       input.payment.external_id
     );
-    if (recovered.ok && reusableCharge(recovered.data)) {
+    if (recovered.ok && recovered.data?.transId && !recovered.data.link && reusableCharge(recovered.data)) {
       const payment = await saveCharge(input.payment, recovered.data, null);
       return { ok: true, payment };
     }
-    return { ok: false, error: friendlyFapshiError(directMessage) };
+    if (direct.status === 0) return { ok: false, error: direct.message };
   }
 
-  const recoveredBeforeLink = await findTransactionByExternalId(
-    input.environment,
-    input.payment.user_id,
-    input.payment.external_id
-  );
-  if (recoveredBeforeLink.ok && reusableCharge(recoveredBeforeLink.data)) {
-    const payment = await saveCharge(
-      input.payment,
-      recoveredBeforeLink.data,
-      input.payment.checkout_url
-    );
-    return { ok: true, payment };
-  }
-
-  const redirectUrl = checkoutReturnUrl(input.payment.course_id, input.payment.id);
-  const link = await initiatePay(input.environment, {
-    amount: input.payment.amount_xaf,
-    email: input.email || undefined,
-    redirectUrl: redirectUrl || undefined,
-    userId: input.payment.user_id,
-    externalId: input.payment.external_id,
-    message,
-  });
-
-  if (link.ok && link.data.transId && link.data.link) {
-    const payment = await saveCharge(input.payment, link.data, link.data.link);
-    return { ok: true, payment };
-  }
-
-  if (!link.ok && link.status === 0) {
-    return { ok: false, error: link.message };
-  }
-
-  return {
-    ok: false,
-    error: friendlyFapshiError(link.ok ? directMessage : link.message || directMessage),
-  };
+  return { ok: false, error: friendlyFapshiError(directMessage) };
 }
