@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, Fraunces } from "next/font/google";
 import { AppProviders } from "@/components/app-providers";
+import { PricingProvider } from "@/components/pricing-provider";
+import { getPricing } from "@/lib/market";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -39,11 +41,12 @@ export const metadata: Metadata = {
 
 const themeInitScript = `(function(){try{var t=localStorage.getItem('lms-theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pricing = await getPricing();
   return (
     <html
       lang="en"
@@ -55,7 +58,9 @@ export default function RootLayout({
         <link rel="preload" href="/brand/icon.png" as="image" type="image/png" />
       </head>
       <body className="min-h-full bg-background font-sans text-foreground" suppressHydrationWarning>
-        <AppProviders>{children}</AppProviders>
+        <AppProviders>
+          <PricingProvider initial={pricing}>{children}</PricingProvider>
+        </AppProviders>
       </body>
     </html>
   );

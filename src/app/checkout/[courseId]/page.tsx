@@ -165,7 +165,8 @@ export default async function CheckoutPage({
             </p>
             <p className="text-sm leading-6 text-slate-500">
               Pay with MTN or Orange Money through Fapshi, or with Visa and Mastercard
-              through CamerPay. The course unlocks when the payment is confirmed.
+              through CamerPay. The price can be shown in FCFA, USD, or EUR. The
+              amount collected is always in FCFA.
             </p>
           </div>
         </section>

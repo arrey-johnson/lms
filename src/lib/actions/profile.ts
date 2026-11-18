@@ -90,6 +90,6 @@ export async function updatePasswordAction(formData: FormData) {
 export async function enrollInCourseAction(_courseId: string) {
   return {
     error:
-      "Courses are paid. Pay with mobile money from the course checkout page.",
+      "Courses are paid. Buy the course from the checkout page.",
   };
 }

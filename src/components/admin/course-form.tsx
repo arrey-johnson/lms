@@ -83,7 +83,7 @@ export function CourseForm({
           placeholder="9900"
         />
         <p className="mt-1 text-xs text-slate-500">
-          Charged in FCFA with MTN Mobile Money or Orange Money. Minimum 100 FCFA.
+          Stored and charged in FCFA. Visitors outside Cameroon also see an approximate USD or EUR price. Minimum 100 FCFA.
         </p>
       </div>
       <div>

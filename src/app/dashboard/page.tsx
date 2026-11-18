@@ -4,10 +4,10 @@ import { requireStudent } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { EnrollButton } from "@/components/enroll-button";
-import { formatPercent, formatPrice } from "@/lib/utils";
+import { PriceLabel } from "@/components/price-label";
+import { formatPercent } from "@/lib/utils";
 import { formatXaf } from "@/lib/currency";
 import { listOpenPayments, syncOpenPaymentsForUser } from "@/lib/payments/sync";
-import { getPriceMarket } from "@/lib/market";
 import {
   courseStudyLabel,
   getCurriculum,
@@ -25,7 +25,6 @@ function coursePrice(course: { price_cents?: number | null }) {
 export default async function StudentDashboardPage() {
   const { profile, userId } = await requireStudent();
   const supabase = await createClient();
-  const market = await getPriceMarket();
   await syncOpenPaymentsForUser(userId);
   const openPayments = await listOpenPayments(userId);
 
@@ -445,7 +444,7 @@ export default async function StudentDashboardPage() {
                         </div>
                       )}
                       <span className="absolute left-2 top-2 rounded bg-surface-elevated/95 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 shadow-sm dark:bg-slate-950/90 dark:text-white">
-                        {formatPrice(priceCents, market)}
+                        <PriceLabel priceCents={priceCents} />
                       </span>
                     </div>
                     <div className="flex flex-1 flex-col gap-2 p-3">
@@ -466,8 +465,7 @@ export default async function StudentDashboardPage() {
                         courseId={course.id}
                         courseTitle={course.title}
                         priceCents={priceCents}
-                        market={market}
-                        cta="Buy now"
+                        cta="Buy"
                       />
                     </div>
                   </div>

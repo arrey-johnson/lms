@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, CreditCard, Loader2, Smartphone } from "lucide-react";
 import { startCardPayment, startMobileMoneyPayment } from "@/lib/actions/payments";
@@ -10,6 +10,7 @@ import {
   normalizeCameroonPhone,
   walletLabel,
 } from "@/lib/fapshi/phone";
+import { usePricing } from "@/components/pricing-provider";
 import { formatXaf } from "@/lib/currency";
 import type { PaymentStatus, PublicPayment, Wallet } from "@/lib/payments/types";
 
@@ -38,7 +39,11 @@ export function CheckoutPanel({
   initial: ActivePayment | null;
 }) {
   const router = useRouter();
-  const [method, setMethod] = useState<"momo" | "card">(initial?.method || "momo");
+  const { format, cardFirst, currency } = usePricing();
+  const methodTouched = useRef(Boolean(initial?.method));
+  const [method, setMethod] = useState<"momo" | "card">(
+    initial?.method || (cardFirst ? "card" : "momo")
+  );
   const [phone, setPhone] = useState(initial?.phone || "");
   const [active, setActive] = useState<ActivePayment | null>(
     initial && initial.status !== "failed" && initial.status !== "expired"
@@ -47,6 +52,11 @@ export function CheckoutPanel({
   );
   const [error, setError] = useState<string | null>(initial?.message || null);
   const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    if (methodTouched.current) return;
+    setMethod(cardFirst ? "card" : "momo");
+  }, [cardFirst]);
 
   useEffect(() => {
     if (!active) return;
@@ -147,7 +157,8 @@ export function CheckoutPanel({
     }
   }
 
-  const amount = formatXaf(amountXaf);
+  const amount = format(amountXaf);
+  const chargedNote = currency === "xaf" ? null : `Charged as ${formatXaf(amountXaf)}`;
   const previewWallet = classifyWallet(normalizeCameroonPhone(phone) || "");
 
   if (active?.status === "successful") {
@@ -180,6 +191,9 @@ export function CheckoutPanel({
                   ? `Pay ${amount} with ${network}`
                   : `Approve ${amount} on your phone`}
             </h2>
+            {chargedNote ? (
+              <p className="mt-1 text-xs text-slate-400">{chargedNote}</p>
+            ) : null}
             <p className="mt-1 text-sm leading-6 text-slate-500">
               {active.method === "card"
                 ? "Finish the Visa or Mastercard payment on CamerPay’s secure page. Your bank confirms the card there. We’ll unlock the course as soon as it is confirmed."
@@ -223,30 +237,25 @@ export function CheckoutPanel({
           <p className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
             {amount}
           </p>
+          {chargedNote ? <p className="mt-1 text-xs text-slate-400">{chargedNote}</p> : null}
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <MethodButton
-          active={method === "momo"}
-          onClick={() => {
-            setMethod("momo");
-            setError(null);
-          }}
-        >
-          <Smartphone className="h-4 w-4" />
-          Mobile money
-        </MethodButton>
-        <MethodButton
-          active={method === "card"}
-          onClick={() => {
-            setMethod("card");
-            setError(null);
-          }}
-        >
-          <CreditCard className="h-4 w-4" />
-          Card
-        </MethodButton>
+        {(cardFirst ? (["card", "momo"] as const) : (["momo", "card"] as const)).map((id) => (
+          <MethodButton
+            key={id}
+            active={method === id}
+            onClick={() => {
+              methodTouched.current = true;
+              setMethod(id);
+              setError(null);
+            }}
+          >
+            {id === "card" ? <CreditCard className="h-4 w-4" /> : <Smartphone className="h-4 w-4" />}
+            {id === "card" ? "Card" : "Mobile money"}
+          </MethodButton>
+        ))}
       </div>
 
       {method === "momo" ? (
@@ -260,7 +269,7 @@ export function CheckoutPanel({
         </div>
       ) : (
         <p className="mt-4 text-sm leading-6 text-slate-500">
-          Visa and Mastercard, including cards issued outside Cameroon. The card number is entered on CamerPay’s secure page, then your bank confirms it. The price stays in FCFA, and we never see the card number.
+          Visa and Mastercard, including cards issued outside Cameroon. The card number is entered on CamerPay’s secure page, then your bank confirms it. We never see the card number.
         </p>
       )}
 

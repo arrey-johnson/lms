@@ -3,14 +3,12 @@ import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { CourseForm } from "@/components/admin/course-form";
 import { DeleteCourseButton } from "@/components/admin/delete-course-button";
-import { formatPrice } from "@/lib/utils";
-import { getPriceMarket } from "@/lib/market";
+import { formatXaf } from "@/lib/currency";
 import { courseStudyLabel } from "@/content/ai-foundations-module-1";
 
 export default async function AdminCoursesPage() {
   await requireAdmin();
   const supabase = await createClient();
-  const market = await getPriceMarket();
 
   const { data: courses } = await supabase
     .from("courses")
@@ -61,12 +59,11 @@ export default async function AdminCoursesPage() {
                   </p>
                 ) : null}
                 <p className="mt-2 text-xs text-slate-400">
-                  {formatPrice(
+                  {formatXaf(
                     typeof course.price_cents === "number" &&
                       course.price_cents > 0
                       ? course.price_cents
-                      : 9900,
-                    market
+                      : 9900
                   )}{" "}
                   · {courseStudyLabel(course.curriculum_slug, moduleCount)}
                 </p>

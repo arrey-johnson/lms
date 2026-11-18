@@ -2,38 +2,21 @@
 
 import Link from "next/link";
 import { PriceLabel } from "@/components/price-label";
-import {
-  detectClientMarket,
-  type PriceMarket,
-} from "@/lib/currency";
-import { useEffect, useState } from "react";
 
 export function EnrollButton({
   courseId,
   priceCents,
-  market,
-  cta = "Pay with mobile money",
+  cta = "Buy",
 }: {
   courseId: string;
   courseTitle: string;
   priceCents: number;
-  market?: PriceMarket;
   cta?: string;
 }) {
-  const [resolved, setResolved] = useState<PriceMarket>(market ?? "usd");
-
-  useEffect(() => {
-    if (market) {
-      setResolved(market);
-      return;
-    }
-    setResolved(detectClientMarket());
-  }, [market]);
-
   return (
     <div className="space-y-1.5">
       <p className="text-sm font-bold text-slate-900 dark:text-white">
-        <PriceLabel priceCents={priceCents} market={resolved} />
+        <PriceLabel priceCents={priceCents} />
       </p>
       <Link
         href={`/checkout/${courseId}`}

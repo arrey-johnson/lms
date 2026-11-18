@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Building2, GraduationCap, ShieldCheck } from "lucide-react";
+import { CurrencySwitcher } from "@/components/currency-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BrandLogo } from "@/components/brand-logo";
 import { CourseSearch } from "@/components/course-search";
@@ -23,6 +24,7 @@ export default function HomePage() {
             <CourseSearch />
           </div>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+            <CurrencySwitcher />
             <ThemeToggle />
             <Link
               href="/login"
