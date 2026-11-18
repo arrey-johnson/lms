@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { issueEmailVerification } from "@/lib/mail/send-verification";
 import { hashEmailOtp } from "@/lib/otp";
+import { safeNextPath } from "@/lib/next-path";
 
 export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
@@ -48,9 +49,8 @@ export async function loginAction(formData: FormData) {
   }
 
   const role = profile?.role ?? "student";
-  if (next && next.startsWith("/") && !next.startsWith("//")) {
-    redirect(next);
-  }
+  const destination = safeNextPath(next);
+  if (destination) redirect(destination);
   redirect(role === "admin" ? "/admin" : "/dashboard");
 }
 
@@ -59,6 +59,7 @@ export async function signupAction(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "");
   const confirm = String(formData.get("confirm_password") || "");
+  const next = safeNextPath(formData.get("next"));
 
   if (!email || !password) {
     return { error: "Email and password are required." };
@@ -114,10 +115,13 @@ export async function signupAction(formData: FormData) {
       error: mailResult.error,
       needsVerification: true,
       email,
+      next,
     };
   }
 
-  redirect(`/verify-email?email=${encodeURIComponent(email)}`);
+  const params = new URLSearchParams({ email });
+  if (next) params.set("next", next);
+  redirect(`/verify-email?${params.toString()}`);
 }
 
 export async function verifyEmailOtpAction(formData: FormData) {
@@ -126,6 +130,7 @@ export async function verifyEmailOtpAction(formData: FormData) {
     .replace(/\s+/g, "")
     .trim();
   const password = String(formData.get("password") || "");
+  const next = safeNextPath(formData.get("next"));
 
   if (!email || !code) {
     return { error: "Enter the 6-digit code from your email." };
@@ -173,6 +178,7 @@ export async function verifyEmailOtpAction(formData: FormData) {
       password,
     });
     if (!error && data.user) {
+      if (next) redirect(next);
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
@@ -182,7 +188,12 @@ export async function verifyEmailOtpAction(formData: FormData) {
     }
   }
 
-  redirect(`/login?verified=1&email=${encodeURIComponent(email)}`);
+  const loginParams = new URLSearchParams({
+    verified: "1",
+    email,
+  });
+  if (next) loginParams.set("next", next);
+  redirect(`/login?${loginParams.toString()}`);
 }
 
 export async function resendEmailOtpAction(formData: FormData) {

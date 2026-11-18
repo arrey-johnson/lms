@@ -2,15 +2,17 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { SiteFooter } from "@/components/site-footer";
 import { VerifyEmailForm } from "@/components/verify-email-form";
+import { safeNextPath } from "@/lib/next-path";
 
 export default async function VerifyEmailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string; mailError?: string }>;
+  searchParams: Promise<{ email?: string; mailError?: string; next?: string }>;
 }) {
   const params = await searchParams;
   const email = (params.email || "").trim().toLowerCase();
   const mailError = (params.mailError || "").trim();
+  const next = safeNextPath(params.next);
 
   return (
     <div className="flex min-h-screen flex-col bg-transparent">
@@ -32,7 +34,7 @@ export default async function VerifyEmailPage({
           ) : null}
           <div className="mt-6">
             {email ? (
-              <VerifyEmailForm email={email} />
+              <VerifyEmailForm email={email} next={next} />
             ) : (
               <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
                 <p>

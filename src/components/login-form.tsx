@@ -80,7 +80,7 @@ export function LoginForm({
       <p className="text-center text-sm text-slate-500">
         New here?{" "}
         <Link
-          href="/signup"
+          href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}
           className="font-medium text-blue-700 hover:underline dark:text-blue-400"
         >
           Create an account

@@ -63,10 +63,10 @@ export default function HomePage() {
           </p>
           <div className="mt-4 flex w-full flex-col gap-2.5 sm:mt-5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
             <Link
-              href="/signup"
+              href="/courses"
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0070F8] px-5 text-sm font-semibold text-white shadow-lg shadow-blue-900/10 transition hover:bg-blue-700 sm:w-auto"
             >
-              Start learning
+              Explore Courses
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link

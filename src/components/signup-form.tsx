@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 
-export function SignupForm() {
+export function SignupForm({ next = "" }: { next?: string }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
@@ -24,6 +24,7 @@ export function SignupForm() {
           if (result?.needsVerification && result.email) {
             const params = new URLSearchParams({ email: result.email });
             if (result.error) params.set("mailError", result.error);
+            if (next) params.set("next", next);
             router.push(`/verify-email?${params.toString()}`);
             return;
           }
@@ -33,6 +34,7 @@ export function SignupForm() {
         });
       }}
     >
+      {next ? <input type="hidden" name="next" value={next} /> : null}
       <div>
         <Label htmlFor="full_name">Full name</Label>
         <Input
@@ -86,7 +88,7 @@ export function SignupForm() {
       <p className="text-center text-sm text-slate-500">
         Already learning with us?{" "}
         <Link
-          href="/login"
+          href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
           className="font-medium text-blue-700 hover:underline dark:text-blue-400"
         >
           Sign in

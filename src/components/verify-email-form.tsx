@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export function VerifyEmailForm({ email }: { email: string }) {
+export function VerifyEmailForm({ email, next = "" }: { email: string; next?: string }) {
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -90,6 +90,7 @@ export function VerifyEmailForm({ email }: { email: string }) {
     const formData = new FormData();
     formData.set("email", email);
     formData.set("code", code);
+    if (next) formData.set("next", next);
     startTransition(async () => {
       const result = await verifyEmailOtpAction(formData);
       if (result?.error) setError(result.error);
@@ -196,7 +197,10 @@ export function VerifyEmailForm({ email }: { email: string }) {
         >
           Resend code
         </button>
-        <Link href="/login" className="hover:text-slate-800 dark:hover:text-slate-200">
+        <Link
+          href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
+          className="hover:text-slate-800 dark:hover:text-slate-200"
+        >
           Back to sign in
         </Link>
       </div>

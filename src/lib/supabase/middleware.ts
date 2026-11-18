@@ -34,7 +34,7 @@ export async function updateSession(request: NextRequest) {
   const isProtectedStudentRoute =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/browse") ||
-    pathname.startsWith("/course") ||
+    (pathname === "/course" || pathname.startsWith("/course/")) ||
     pathname.startsWith("/checkout") ||
     pathname.startsWith("/settings");
 

@@ -1,8 +1,14 @@
 import { BrandLogo } from "@/components/brand-logo";
 import { SignupForm } from "@/components/signup-form";
 import { SiteFooter } from "@/components/site-footer";
+import { safeNextPath } from "@/lib/next-path";
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const next = safeNextPath((await searchParams).next);
   return (
     <div className="flex min-h-screen flex-col bg-transparent">
       <div className="flex flex-1 items-center justify-center px-3 py-8 sm:px-4 sm:py-12">
@@ -12,11 +18,12 @@ export default function SignupPage() {
             Create your account
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Join for technology, finance, forex, digital marketing, management,
-            and more — taught with guided practice you can use on the job.
+            {next.startsWith("/checkout/")
+              ? "Create your account, confirm your email, then you’ll continue to checkout for this course."
+              : "Join for technology, finance, forex, digital marketing, management, and more — taught with guided practice you can use on the job."}
           </p>
           <div className="mt-6">
-            <SignupForm />
+            <SignupForm next={next} />
           </div>
         </div>
       </div>

@@ -54,7 +54,7 @@ export function CourseSearch({ className }: { className?: string }) {
 
   function goToCourse(courseId: string) {
     setOpen(false);
-    router.push(`/login?next=${encodeURIComponent(`/course/${courseId}`)}`);
+    router.push(`/courses#${courseId}`);
   }
 
   function onSubmit(event: React.FormEvent) {
@@ -65,7 +65,7 @@ export function CourseSearch({ className }: { className?: string }) {
       goToCourse(results[0].id);
       return;
     }
-    router.push(`/login?next=${encodeURIComponent(`/dashboard?q=${q}`)}`);
+    router.push(`/courses?q=${encodeURIComponent(q)}`);
   }
 
   return (
@@ -155,11 +155,11 @@ export function CourseSearch({ className }: { className?: string }) {
           </ul>
           <div className="border-t border-slate-100 px-4 py-2 dark:border-slate-800">
             <Link
-              href={`/signup`}
+              href="/courses"
               className="text-xs font-medium text-[#0070F8] hover:underline"
               onClick={() => setOpen(false)}
             >
-              Create an account to buy
+              See all courses
             </Link>
           </div>
         </div>

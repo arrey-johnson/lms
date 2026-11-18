@@ -4,7 +4,13 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { Search } from "lucide-react";
 
-export function BrowseFilters({ initialQuery }: { initialQuery: string }) {
+export function BrowseFilters({
+  initialQuery,
+  path = "/browse",
+}: {
+  initialQuery: string;
+  path?: string;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -16,7 +22,7 @@ export function BrowseFilters({ initialQuery }: { initialQuery: string }) {
         const form = new FormData(event.currentTarget);
         const q = String(form.get("q") || "").trim();
         startTransition(() => {
-          router.push(q ? `/browse?q=${encodeURIComponent(q)}` : "/browse");
+          router.push(q ? `${path}?q=${encodeURIComponent(q)}` : path);
         });
       }}
     >
