@@ -42,6 +42,7 @@ export default async function AdminPaymentsPage() {
   const titles = new Map((courses || []).map((course) => [course.id, course.title]));
   const origin = getAppUrl();
   const webhookUrl = origin ? `${origin}/api/payments/fapshi` : "";
+  const cardWebhookUrl = origin ? `${origin}/api/payments/elyon` : "";
   const environment = activeFapshiEnvironment();
 
   return (
@@ -51,17 +52,18 @@ export default async function AdminPaymentsPage() {
           Payments
         </h1>
         <p className="mt-1 text-slate-500">
-          Mobile money charges collected through Fapshi. Successful payments enroll the student automatically.
+          Mobile money is collected through Fapshi. Visa and Mastercard go through ElyonPay. A confirmed payment enrolls the student.
         </p>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <Info label="Environment" value={environment === "live" ? "Live" : "Sandbox"} />
         <Info
           label="Webhook secret"
           value={fapshiWebhookSecret() ? "Configured" : "Missing"}
         />
-        <Info label="Webhook URL" value={webhookUrl || "Set APP_URL to your public https origin"} />
+        <Info label="Fapshi webhook" value={webhookUrl || "Set APP_URL to your public https origin"} />
+        <Info label="ElyonPay webhook" value={cardWebhookUrl || "Set APP_URL to your public https origin"} />
       </div>
 
       {missing ? (

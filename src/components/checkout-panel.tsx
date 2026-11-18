@@ -2,8 +2,8 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Loader2, Smartphone } from "lucide-react";
-import { startMobileMoneyPayment } from "@/lib/actions/payments";
+import { CheckCircle2, CreditCard, Loader2, Smartphone } from "lucide-react";
+import { startCardPayment, startMobileMoneyPayment } from "@/lib/actions/payments";
 import {
   classifyWallet,
   formatCameroonPhone,
@@ -19,7 +19,8 @@ type ActivePayment = {
   mode: "prompt" | "link";
   checkoutUrl: string | null;
   phone: string;
-  wallet: Wallet;
+  wallet: Wallet | null;
+  method: "momo" | "card";
   message: string | null;
 };
 
@@ -37,6 +38,7 @@ export function CheckoutPanel({
   initial: ActivePayment | null;
 }) {
   const router = useRouter();
+  const [method, setMethod] = useState<"momo" | "card">(initial?.method || "momo");
   const [phone, setPhone] = useState(initial?.phone || "");
   const [active, setActive] = useState<ActivePayment | null>(
     initial && initial.status !== "failed" && initial.status !== "expired"
@@ -116,7 +118,10 @@ export function CheckoutPanel({
     event.preventDefault();
     setError(null);
     setPending(true);
-    const result = await startMobileMoneyPayment(courseId, phone);
+    const result =
+      method === "card"
+        ? await startCardPayment(courseId, phone)
+        : await startMobileMoneyPayment(courseId, phone);
     setPending(false);
     if (!result.ok) {
       if (result.alreadyEnrolled) {
@@ -133,7 +138,8 @@ export function CheckoutPanel({
       mode: result.mode,
       checkoutUrl: result.checkoutUrl,
       phone: result.phone,
-      wallet: result.wallet,
+      wallet: result.method === "card" ? null : result.wallet,
+      method: result.method === "card" ? "card" : "momo",
       message: null,
     });
     if (result.mode === "link" && result.checkoutUrl) {
@@ -159,7 +165,7 @@ export function CheckoutPanel({
   }
 
   if (active && active.status !== "failed" && active.status !== "expired") {
-    const network = walletLabel(active.wallet);
+    const network = active.method === "card" ? "card" : walletLabel(active.wallet);
     return (
       <div className="rounded-3xl border border-[color:var(--border)] bg-surface-elevated p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-start gap-3">
@@ -168,12 +174,14 @@ export function CheckoutPanel({
           </span>
           <div>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-              Approve {amount} on your phone
+              {active.method === "card" ? `Pay ${amount} by card` : `Approve ${amount} on your phone`}
             </h2>
             <p className="mt-1 text-sm leading-6 text-slate-500">
-              {active.mode === "link"
-                ? "Finish the payment on Fapshi’s secure page. We’ll detect it automatically and unlock the course."
-                : `A ${network} prompt was sent to ${formatCameroonPhone(active.phone)}. Enter your PIN to approve it.`}
+              {active.method === "card"
+                ? "Finish the Visa or Mastercard payment on ElyonPay. We’ll unlock the course as soon as it is confirmed."
+                : active.mode === "link"
+                  ? "Finish the payment on Fapshi’s secure page. We’ll detect it automatically and unlock the course."
+                  : `A ${network} prompt was sent to ${formatCameroonPhone(active.phone)}. Enter your PIN to approve it.`}
             </p>
           </div>
         </div>
@@ -188,7 +196,7 @@ export function CheckoutPanel({
             href={active.checkoutUrl}
             className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-xl bg-[#0070F8] text-sm font-semibold text-white hover:bg-blue-700"
           >
-            Open payment page
+            {active.method === "card" ? "Continue card payment" : "Open payment page"}
           </a>
         ) : (
           <p className="mt-5 rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600 dark:bg-slate-950 dark:text-slate-300">
@@ -214,40 +222,73 @@ export function CheckoutPanel({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <NetworkPill active={previewWallet === "mtn"} tone="mtn">
-          MTN Mobile Money
-        </NetworkPill>
-        <NetworkPill active={previewWallet === "orange"} tone="orange">
-          Orange Money
-        </NetworkPill>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <MethodButton
+          active={method === "momo"}
+          onClick={() => {
+            setMethod("momo");
+            setError(null);
+          }}
+        >
+          <Smartphone className="h-4 w-4" />
+          Mobile money
+        </MethodButton>
+        <MethodButton
+          active={method === "card"}
+          onClick={() => {
+            setMethod("card");
+            setError(null);
+          }}
+        >
+          <CreditCard className="h-4 w-4" />
+          Card
+        </MethodButton>
       </div>
 
+      {method === "momo" ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <NetworkPill active={previewWallet === "mtn"} tone="mtn">
+            MTN Mobile Money
+          </NetworkPill>
+          <NetworkPill active={previewWallet === "orange"} tone="orange">
+            Orange Money
+          </NetworkPill>
+        </div>
+      ) : (
+        <p className="mt-4 text-sm leading-6 text-slate-500">
+          Visa and Mastercard. You’ll confirm the card on ElyonPay’s secure page. The price stays in FCFA.
+        </p>
+      )}
+
       <label htmlFor="momo-phone" className="mt-6 block text-sm font-medium text-slate-700 dark:text-slate-200">
-        Mobile money number
+        {method === "card" ? "Phone number" : "Mobile money number"}
       </label>
       <div className="mt-1.5 flex overflow-hidden rounded-xl border border-[color:var(--border)] bg-white focus-within:border-[#0070F8] focus-within:ring-2 focus-within:ring-[#0070F8]/20 dark:border-slate-700 dark:bg-slate-950">
-        <span className="flex items-center border-r border-[color:var(--border)] px-3 text-sm font-semibold text-slate-500 dark:border-slate-700">
-          +237
-        </span>
+        {method === "momo" ? (
+          <span className="flex items-center border-r border-[color:var(--border)] px-3 text-sm font-semibold text-slate-500 dark:border-slate-700">
+            +237
+          </span>
+        ) : null}
         <input
           id="momo-phone"
           name="phone"
-          inputMode="numeric"
+          inputMode="tel"
           autoComplete="tel"
-          placeholder="6XX XX XX XX"
+          placeholder={method === "card" ? "+1 202 555 0100" : "6XX XX XX XX"}
           value={phone}
           onChange={(event) => setPhone(event.target.value)}
           className="h-12 w-full bg-transparent px-3 text-base text-slate-900 outline-none dark:text-white"
         />
       </div>
       <p className="mt-2 text-xs leading-5 text-slate-400">
-        {previewWallet
-          ? `We’ll request ${walletLabel(previewWallet)} on this number.`
-          : "MTN numbers start with 67, 68, or 650–654. Orange numbers start with 69 or 655–659."}
+        {method === "card"
+          ? "Include the country code. ElyonPay uses it on the card receipt."
+          : previewWallet
+            ? `We’ll request ${walletLabel(previewWallet)} on this number.`
+            : "MTN numbers start with 67, 68, or 650–654. Orange numbers start with 69 or 655–659."}
       </p>
 
-      {testMode ? (
+      {testMode && method === "momo" ? (
         <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
           Sandbox mode — no real money moves. Success: 670000000 (MTN) or
           690000000 (Orange). Failure: 670000001 or 690000001.
@@ -265,12 +306,44 @@ export function CheckoutPanel({
         disabled={pending}
         className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-xl bg-[#0070F8] text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
       >
-        {pending ? "Sending prompt…" : `Pay ${amount}`}
+        {pending
+          ? method === "card"
+            ? "Opening card payment…"
+            : "Sending prompt…"
+          : method === "card"
+            ? `Pay ${amount} by card`
+            : `Pay ${amount}`}
       </button>
       <p className="mt-3 text-center text-xs leading-5 text-slate-400">
-        You’ll get an email when the prompt is sent, and another when the course unlocks.
+        {method === "card"
+          ? "You’ll get a receipt by email when the card payment is confirmed."
+          : "You’ll get an email when the prompt is sent, and another when the course unlocks."}
       </p>
     </form>
+  );
+}
+
+function MethodButton({
+  children,
+  active,
+  onClick,
+}: {
+  children: React.ReactNode;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition ${
+        active
+          ? "border-[#0070F8] bg-[#0070F8] text-white"
+          : "border-slate-200 text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:text-slate-300"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 

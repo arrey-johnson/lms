@@ -106,8 +106,9 @@ async function fapshiRequest<T>(
   return { ok: true, status: response.status, data: (data || {}) as T };
 }
 
-export function isDirectPayUnavailable(message: string) {
-  return /direct\s*pay|not enabled|not activated|disabled|deactivated|not available/i.test(
+export function isDirectPayUnavailable(message: string, status?: number) {
+  if (status === 403) return true;
+  return /direct[-\s]*pay|not enabled|not activated|disabled|deactivated|not available|forbidden/i.test(
     message
   );
 }

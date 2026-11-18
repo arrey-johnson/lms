@@ -1,6 +1,11 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
+  elyonStateToPaymentStatus,
+  getElyonTransaction,
+  type ElyonTransaction,
+} from "@/lib/elyon/client";
+import {
   getPaymentStatus,
   type FapshiTransaction,
 } from "@/lib/fapshi/client";
@@ -201,6 +206,105 @@ function patchFromRemote(remote: FapshiTransaction, status: PaymentStatus) {
   return patch;
 }
 
+async function syncCardPayment(payment: PaymentRecord, revalidate: boolean) {
+  if (!payment.trans_id) return { payment };
+  const remoteResult = await getElyonTransaction(payment.trans_id);
+  if (!remoteResult.ok) {
+    return { payment, error: remoteResult.message };
+  }
+  const remote = remoteResult.data;
+  const nextStatus = elyonStateToPaymentStatus(remote.state);
+  const admin = createAdminClient();
+
+  if (nextStatus === "successful") {
+    const detail = cardMismatch(payment, remote);
+    if (detail) {
+      const now = new Date().toISOString();
+      await admin
+        .from("payments")
+        .update({ notes: detail, last_checked_at: now, updated_at: now })
+        .eq("id", payment.id);
+      if (await claim(payment.id, "alerted_at")) {
+        try {
+          await sendPaymentMismatchMail({ ...(await mailContext(payment)), detail });
+        } catch (error) {
+          console.error("Card payment mismatch email failed", error);
+        }
+      }
+      const fresh = (await loadPayment(payment.id)) || payment;
+      return { payment: fresh, mismatch: true };
+    }
+
+    const now = new Date().toISOString();
+    const { data: updated } = await admin
+      .from("payments")
+      .update({
+        status: "successful",
+        last_checked_at: now,
+        updated_at: now,
+        confirmed_at: remote.validation_date || now,
+        financial_trans_id: remote.PSPid || remote.uuid || payment.financial_trans_id,
+        phone: remote.payer_phone_number || payment.phone,
+        revenue_xaf: cardRevenue(remote) ?? payment.revenue_xaf,
+      })
+      .eq("id", payment.id)
+      .neq("status", "successful")
+      .select("*")
+      .maybeSingle();
+    const current = (updated as PaymentRecord | null) || (await loadPayment(payment.id)) || payment;
+    await notifySuccess(current, revalidate);
+    const fresh = (await loadPayment(payment.id)) || current;
+    return { payment: fresh };
+  }
+
+  if (nextStatus === "failed") {
+    const now = new Date().toISOString();
+    const { data: updated } = await admin
+      .from("payments")
+      .update({ status: "failed", last_checked_at: now, updated_at: now })
+      .eq("id", payment.id)
+      .in("status", ["created", "pending", "failed"])
+      .select("*")
+      .maybeSingle();
+    if (updated && (await claim(payment.id, "failure_notified_at"))) {
+      try {
+        await sendPaymentFailedMail({ ...(await mailContext(updated as PaymentRecord)), expired: false });
+      } catch (error) {
+        console.error("Card payment failure email failed", error);
+        await admin.from("payments").update({ failure_notified_at: null }).eq("id", payment.id);
+      }
+    }
+    const fresh = (await loadPayment(payment.id)) || payment;
+    return { payment: fresh };
+  }
+
+  await admin
+    .from("payments")
+    .update({ last_checked_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq("id", payment.id)
+    .in("status", ["created", "pending"]);
+  const fresh = (await loadPayment(payment.id)) || payment;
+  return { payment: fresh };
+}
+
+function cardMismatch(payment: PaymentRecord, remote: ElyonTransaction) {
+  if (typeof remote.amount === "number" && Number(remote.amount) !== Number(payment.amount_xaf)) {
+    return `ElyonPay collected ${remote.amount} XAF, but this order is ${payment.amount_xaf} XAF.`;
+  }
+  if (remote.externalId && remote.externalId !== payment.external_id) {
+    return "ElyonPay returned a different order id than the one we created.";
+  }
+  return null;
+}
+
+function cardRevenue(remote: ElyonTransaction) {
+  if (typeof remote.amount !== "number") return null;
+  const fees = [remote.commission_operateur, remote.commission_marchand, remote.commission_pays]
+    .filter((value): value is number => typeof value === "number")
+    .reduce((sum, value) => sum + value, 0);
+  return Math.max(0, Math.round(remote.amount - fees));
+}
+
 export async function syncPaymentById(
   paymentId: string,
   options?: {
@@ -234,6 +338,10 @@ export async function syncPaymentById(
     : 0;
   if (!options?.force && checkedAt && Date.now() - checkedAt < MIN_CHECK_MS) {
     return { payment };
+  }
+
+  if (payment.medium === "card") {
+    return syncCardPayment(payment, revalidate);
   }
 
   const transId = payment.trans_id || options?.hint?.transId || "";

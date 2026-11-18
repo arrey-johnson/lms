@@ -33,6 +33,7 @@ export function mediumLabel(
   phone?: string | null
 ) {
   const value = (medium || "").toLowerCase();
+  if (value === "card" || value.includes("visa") || value.includes("mastercard")) return "Card";
   if (value.includes("orange")) return "Orange Money";
   if (value.includes("mobile")) return "MTN Mobile Money";
   return walletLabel(phone ? classifyWallet(phone) : null);

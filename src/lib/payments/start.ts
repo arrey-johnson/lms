@@ -34,10 +34,19 @@ function missingTable(error: { code?: string; message?: string } | null) {
 
 function friendlyFapshiError(message: string) {
   const clean = message.replace(/\s+/g, " ").trim();
-  if (!clean || clean.length > 180) {
+  if (!clean || clean.length > 180 || /fapshi\.com|forbidden request/i.test(clean)) {
     return "Fapshi could not start the payment. Check the number and try again.";
   }
   return clean;
+}
+
+function reusableCharge(
+  remote: FapshiTransaction | null | undefined
+): remote is FapshiTransaction {
+  if (!remote?.transId) return false;
+  const status = (remote.status || "").toUpperCase();
+  if ((status === "FAILED" || status === "EXPIRED") && !remote.link) return false;
+  return true;
 }
 
 function toResult(payment: PaymentRecord, wallet: Wallet): StartPaymentResult {
@@ -173,6 +182,7 @@ export async function startMobileMoneyCheckout(input: {
     .eq("user_id", input.userId)
     .eq("course_id", input.courseId)
     .eq("environment", environment)
+    .neq("medium", "card")
     .in("status", ["created", "pending"])
     .order("created_at", { ascending: false })
     .limit(1)
@@ -338,13 +348,13 @@ async function chargeFapshi(input: {
     ? "Fapshi accepted the payment but did not return a transaction id."
     : direct.message;
 
-  if (!direct.ok && !isDirectPayUnavailable(direct.message)) {
+  if (!direct.ok && !isDirectPayUnavailable(direct.message, direct.status)) {
     const recovered = await findTransactionByExternalId(
       input.environment,
       input.payment.user_id,
       input.payment.external_id
     );
-    if (recovered.ok && recovered.data?.transId) {
+    if (recovered.ok && reusableCharge(recovered.data)) {
       const payment = await saveCharge(input.payment, recovered.data, null);
       return { ok: true, payment };
     }
@@ -356,7 +366,7 @@ async function chargeFapshi(input: {
     input.payment.user_id,
     input.payment.external_id
   );
-  if (recoveredBeforeLink.ok && recoveredBeforeLink.data?.transId) {
+  if (recoveredBeforeLink.ok && reusableCharge(recoveredBeforeLink.data)) {
     const payment = await saveCharge(
       input.payment,
       recoveredBeforeLink.data,

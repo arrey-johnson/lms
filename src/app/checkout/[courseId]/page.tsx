@@ -89,7 +89,8 @@ export default async function CheckoutPage({
       ? course.price_cents
       : 9900;
   const amountXaf = payment?.amount_xaf || courseAmountXaf(priceCents);
-  const wallet = (payment?.phone ? classifyWallet(payment.phone) : null) as Wallet | null;
+  const isCard = payment?.medium === "card";
+  const wallet = (payment?.phone && !isCard ? classifyWallet(payment.phone) : null) as Wallet | null;
 
   let thumbnailUrl: string | null = null;
   if (course.thumbnail_path) {
@@ -105,7 +106,7 @@ export default async function CheckoutPage({
     .eq("course_id", courseId);
 
   const initial =
-    payment && wallet
+    payment && (wallet || isCard)
       ? {
           paymentId: payment.id,
           status: payment.status,
@@ -113,6 +114,7 @@ export default async function CheckoutPage({
           checkoutUrl: payment.checkout_url,
           phone: payment.phone || "",
           wallet,
+          method: isCard ? ("card" as const) : ("momo" as const),
           message:
             payment.status === "failed"
               ? "The last payment was not approved. You can send a new prompt."
@@ -158,8 +160,9 @@ export default async function CheckoutPage({
               {courseStudyLabel(course.curriculum_slug, count || 0)}
             </p>
             <p className="text-sm leading-6 text-slate-500">
-              Pay with MTN Mobile Money or Orange Money. The course unlocks the
-              moment the payment is confirmed, and we email your receipt.
+              Pay with MTN or Orange Money in Cameroon, or with Visa and Mastercard
+              from anywhere. The course unlocks when the payment is confirmed, and
+              we email your receipt.
             </p>
           </div>
         </section>

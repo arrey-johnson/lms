@@ -48,6 +48,7 @@ export type StartPaymentResult =
       amountXaf: number;
       phone: string;
       wallet: Wallet;
+      method?: "card" | "momo";
       testMode: boolean;
     }
   | { ok: false; error: string; alreadyEnrolled?: boolean };
