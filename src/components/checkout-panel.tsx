@@ -179,9 +179,11 @@ export function CheckoutPanel({
             <p className="mt-1 text-sm leading-6 text-slate-500">
               {active.method === "card"
                 ? "Finish the Visa or Mastercard payment on CamerPay. We’ll unlock the course as soon as it is confirmed."
-                : active.wallet === "orange"
-                  ? `Continue on CamerPay. Orange Money then sends a direct USSD prompt to ${formatCameroonPhone(active.phone)}. Enter your PIN on the phone.`
-                  : `Continue on CamerPay. MTN then sends a MoMo notification to ${formatCameroonPhone(active.phone)}. Approve it with your PIN.`}
+                : active.checkoutUrl?.includes("fapshi.com")
+                  ? "Finish the payment on Fapshi’s secure page. We’ll detect it and unlock the course."
+                  : active.wallet === "orange"
+                    ? `Continue on CamerPay. Orange Money then sends a direct USSD prompt to ${formatCameroonPhone(active.phone)}. Enter your PIN on the phone.`
+                    : `Continue on CamerPay. MTN then sends a MoMo notification to ${formatCameroonPhone(active.phone)}. Approve it with your PIN.`}
             </p>
           </div>
         </div>

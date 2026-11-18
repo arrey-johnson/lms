@@ -33,6 +33,25 @@ export function camerpayEnvironment(): "sandbox" | "live" {
   return process.env.CAMERPAY_ENV === "sandbox" ? "sandbox" : "live";
 }
 
+export function providerDidNotRespond(message: string) {
+  return /curl|timed out|timeout|ynote\.africa|libcurl|0 bytes received/i.test(message);
+}
+
+export function studentPaymentError(message: string, kind: "card" | "momo") {
+  const clean = message.replace(/\s+/g, " ").trim();
+  if (providerDidNotRespond(clean)) {
+    return kind === "card"
+      ? "The card network did not respond. Wait a moment and try again."
+      : "The mobile money network did not respond. Wait a moment and try again, or pay by card.";
+  }
+  if (!clean || clean.length > 180 || /https?:\/\//i.test(clean)) {
+    return kind === "card"
+      ? "CamerPay could not start the card payment. Try again in a moment."
+      : "CamerPay could not start the mobile money payment. Check the number and try again.";
+  }
+  return clean;
+}
+
 export function camerpayCallbackSecret() {
   return process.env.CAMERPAY_CALLBACK_SECRET?.trim() || "";
 }

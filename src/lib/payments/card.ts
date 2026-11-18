@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { checkoutReturnUrl, getAppUrl } from "@/lib/app-url";
-import { createCardCheckout, camerpayConfigured, camerpayEnvironment } from "@/lib/camerpay/client";
+import { createCardCheckout, camerpayConfigured, camerpayEnvironment, studentPaymentError } from "@/lib/camerpay/client";
 import { courseAmountXaf } from "@/lib/currency";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { PaymentRecord, StartPaymentResult } from "@/lib/payments/types";
@@ -21,11 +21,7 @@ function cardPhone(input: string) {
 }
 
 function friendly(message: string) {
-  const clean = message.replace(/\s+/g, " ").trim();
-  if (!clean || clean.length > 180) {
-    return "CamerPay could not start the card payment. Try again in a moment.";
-  }
-  return clean;
+  return studentPaymentError(message, "card");
 }
 
 export async function startCardCheckout(input: {

@@ -5,9 +5,12 @@ import {
   camerpayEnvironment,
   createCamerPayCheckout,
   isCamerPayTransactionId,
+  providerDidNotRespond,
+  studentPaymentError,
   type CamerPayMethod,
 } from "@/lib/camerpay/client";
 import { courseAmountXaf } from "@/lib/currency";
+import { activeFapshiEnvironment, initiatePay } from "@/lib/fapshi/client";
 import { classifyWallet, normalizeCameroonPhone } from "@/lib/fapshi/phone";
 import { sendPaymentRequestedMail } from "@/lib/mail/send-payment";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -26,11 +29,7 @@ function missingTable(error: { code?: string; message?: string } | null) {
 }
 
 function friendly(message: string) {
-  const clean = message.replace(/\s+/g, " ").trim();
-  if (!clean || clean.length > 180) {
-    return "CamerPay could not start the mobile money payment. Check the number and try again.";
-  }
-  return clean;
+  return studentPaymentError(message, "momo");
 }
 
 function methodFor(wallet: Wallet): CamerPayMethod {
@@ -175,9 +174,43 @@ export async function startMobileMoneyCheckout(input: {
     returnUrl,
   });
   if (!charged.ok) {
+    if (providerDidNotRespond(charged.message)) {
+      const fapshiEnv = activeFapshiEnvironment();
+      const link = await initiatePay(fapshiEnv, {
+        amount: amountXaf,
+        email: input.email || undefined,
+        redirectUrl: returnUrl,
+        userId: input.userId,
+        externalId: id,
+        message: `Promptstack Classroom — ${course.title}`.slice(0, 140),
+      });
+      if (link.ok && link.data.transId && link.data.link) {
+        const { data: saved, error: saveError } = await admin
+          .from("payments")
+          .update({
+            trans_id: link.data.transId,
+            status: "pending",
+            checkout_url: link.data.link,
+            environment: fapshiEnv,
+            medium: mediumFor(wallet),
+            financial_trans_id: null,
+            notes: null,
+            updated_at: new Date().toISOString(),
+            last_checked_at: null,
+          })
+          .eq("id", id)
+          .select("*")
+          .maybeSingle();
+        if (!saveError && saved) {
+          const payment = saved as PaymentRecord;
+          await claimRequestEmail(payment, input.fullName, course.title);
+          return toResult(payment, wallet);
+        }
+      }
+    }
     await admin
       .from("payments")
-      .update({ status: "failed", notes: charged.message, updated_at: new Date().toISOString() })
+      .update({ status: "failed", notes: friendly(charged.message), updated_at: new Date().toISOString() })
       .eq("id", id)
       .in("status", ["created", "pending"]);
     return { ok: false, error: friendly(charged.message) };

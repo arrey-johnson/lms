@@ -54,11 +54,11 @@ export function buildPaymentRequestedEmail(input: PaymentMailContext) {
 
   const text = `${hello}
 
-Continue the ${network} payment for ${input.courseTitle} on CamerPay.
+Continue the ${network} payment for ${input.courseTitle}.
 
 Amount: ${amount}
 ${phone ? `Phone: ${phone}\n` : ""}${input.transId ? `Reference: ${input.transId}\n` : ""}
-Confirm the payment, then approve the PIN prompt on your phone. Orange Money sends that prompt directly by USSD. MTN sends a MoMo notification. The course unlocks as soon as the payment succeeds.
+Open the secure payment page, then approve the PIN prompt on your phone. The course unlocks as soon as the payment succeeds.
 
 If you did not start this payment, you can ignore it.
 
@@ -72,8 +72,8 @@ support@promptstackclassroom.com`;
       <p style="margin:0 0 12px;font-size:16px;line-height:1.5;color:#001C4C;">${escapeHtml(hello)}</p>
       <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#475569;">
         Your <strong style="color:#001C4C;">${escapeHtml(network)}</strong> payment for
-        <strong style="color:#001C4C;">${escapeHtml(input.courseTitle)}</strong> is ready on CamerPay.
-        After you confirm, approve the PIN prompt on your phone. The course unlocks automatically.
+        <strong style="color:#001C4C;">${escapeHtml(input.courseTitle)}</strong> is ready.
+        Continue to the secure payment page, then approve the PIN prompt on your phone. The course unlocks automatically.
       </p>
       ${emailDetailTable([
         { label: "Amount", value: amount },
