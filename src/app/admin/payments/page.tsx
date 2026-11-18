@@ -1,7 +1,8 @@
 import { requireAdmin } from "@/lib/auth";
 import { getAppUrl } from "@/lib/app-url";
 import { formatXaf } from "@/lib/currency";
-import { activeFapshiEnvironment, fapshiWebhookSecret } from "@/lib/fapshi/client";
+import { camerpayCallbackSecret, camerpayEnvironment } from "@/lib/camerpay/client";
+import { fapshiWebhookSecret } from "@/lib/fapshi/client";
 import { formatCameroonPhone, mediumLabel } from "@/lib/fapshi/phone";
 import { isMissingPaymentsTable } from "@/lib/payments/sync";
 import type { PaymentRecord, PaymentStatus } from "@/lib/payments/types";
@@ -42,8 +43,7 @@ export default async function AdminPaymentsPage() {
   const titles = new Map((courses || []).map((course) => [course.id, course.title]));
   const origin = getAppUrl();
   const webhookUrl = origin ? `${origin}/api/payments/fapshi` : "";
-  const cardWebhookUrl = origin ? `${origin}/api/payments/elyon` : "";
-  const environment = activeFapshiEnvironment();
+  const cardWebhookUrl = origin ? `${origin}/api/payments/camerpay` : "";
 
   return (
     <div className="space-y-6">
@@ -52,18 +52,19 @@ export default async function AdminPaymentsPage() {
           Payments
         </h1>
         <p className="mt-1 text-slate-500">
-          Mobile money is collected through Fapshi. Visa and Mastercard go through ElyonPay. A confirmed payment enrolls the student.
+          Mobile money and cards are collected through CamerPay. A confirmed payment enrolls the student. Payments that already started on Fapshi can still finish there.
         </p>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Info label="Environment" value={environment === "live" ? "Live" : "Sandbox"} />
+        <Info label="Mobile money" value={camerpayEnvironment() === "live" ? "CamerPay live" : "CamerPay sandbox"} />
         <Info
-          label="Webhook secret"
+          label="Fapshi secret"
           value={fapshiWebhookSecret() ? "Configured" : "Missing"}
         />
         <Info label="Fapshi webhook" value={webhookUrl || "Set APP_URL to your public https origin"} />
-        <Info label="ElyonPay webhook" value={cardWebhookUrl || "Set APP_URL to your public https origin"} />
+        <Info label="CamerPay webhook" value={cardWebhookUrl || "Set APP_URL to your public https origin"} />
+        <Info label="CamerPay secret" value={camerpayCallbackSecret() ? "Configured" : "Missing"} />
       </div>
 
       {missing ? (

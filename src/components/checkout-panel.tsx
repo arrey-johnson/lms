@@ -120,7 +120,7 @@ export function CheckoutPanel({
     setPending(true);
     const result =
       method === "card"
-        ? await startCardPayment(courseId, phone)
+        ? await startCardPayment(courseId, "")
         : await startMobileMoneyPayment(courseId, phone);
     setPending(false);
     if (!result.ok) {
@@ -170,18 +170,18 @@ export function CheckoutPanel({
       <div className="rounded-3xl border border-[color:var(--border)] bg-surface-elevated p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-start gap-3">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#0070F8]/10 text-[#0070F8]">
-            <Smartphone className="h-5 w-5" />
+            {active.method === "card" ? <CreditCard className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}
           </span>
           <div>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-              {active.method === "card" ? `Pay ${amount} by card` : `Approve ${amount} on your phone`}
+              {active.method === "card" ? `Pay ${amount} by card` : `Pay ${amount} with ${network}`}
             </h2>
             <p className="mt-1 text-sm leading-6 text-slate-500">
               {active.method === "card"
-                ? "Finish the Visa or Mastercard payment on ElyonPay. We’ll unlock the course as soon as it is confirmed."
-                : active.mode === "link"
-                  ? "Finish the payment on Fapshi’s secure page. We’ll detect it automatically and unlock the course."
-                  : `A ${network} prompt was sent to ${formatCameroonPhone(active.phone)}. Enter your PIN to approve it.`}
+                ? "Finish the Visa or Mastercard payment on CamerPay. We’ll unlock the course as soon as it is confirmed."
+                : active.wallet === "orange"
+                  ? `Continue on CamerPay. Orange Money then sends a direct USSD prompt to ${formatCameroonPhone(active.phone)}. Enter your PIN on the phone.`
+                  : `Continue on CamerPay. MTN then sends a MoMo notification to ${formatCameroonPhone(active.phone)}. Approve it with your PIN.`}
             </p>
           </div>
         </div>
@@ -196,7 +196,7 @@ export function CheckoutPanel({
             href={active.checkoutUrl}
             className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-xl bg-[#0070F8] text-sm font-semibold text-white hover:bg-blue-700"
           >
-            {active.method === "card" ? "Continue card payment" : "Open payment page"}
+            {active.method === "card" ? "Continue card payment" : "Continue mobile money"}
           </a>
         ) : (
           <p className="mt-5 rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600 dark:bg-slate-950 dark:text-slate-300">
@@ -256,42 +256,41 @@ export function CheckoutPanel({
         </div>
       ) : (
         <p className="mt-4 text-sm leading-6 text-slate-500">
-          Visa and Mastercard. You’ll confirm the card on ElyonPay’s secure page. The price stays in FCFA.
+          Visa and Mastercard, including cards issued outside Cameroon. You’ll enter the card on CamerPay’s secure page. The price stays in FCFA.
         </p>
       )}
 
-      <label htmlFor="momo-phone" className="mt-6 block text-sm font-medium text-slate-700 dark:text-slate-200">
-        {method === "card" ? "Phone number" : "Mobile money number"}
-      </label>
-      <div className="mt-1.5 flex overflow-hidden rounded-xl border border-[color:var(--border)] bg-white focus-within:border-[#0070F8] focus-within:ring-2 focus-within:ring-[#0070F8]/20 dark:border-slate-700 dark:bg-slate-950">
-        {method === "momo" ? (
-          <span className="flex items-center border-r border-[color:var(--border)] px-3 text-sm font-semibold text-slate-500 dark:border-slate-700">
-            +237
-          </span>
-        ) : null}
-        <input
-          id="momo-phone"
-          name="phone"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder={method === "card" ? "+1 202 555 0100" : "6XX XX XX XX"}
-          value={phone}
-          onChange={(event) => setPhone(event.target.value)}
-          className="h-12 w-full bg-transparent px-3 text-base text-slate-900 outline-none dark:text-white"
-        />
-      </div>
-      <p className="mt-2 text-xs leading-5 text-slate-400">
-        {method === "card"
-          ? "Include the country code. ElyonPay uses it on the card receipt."
-          : previewWallet
-            ? `We’ll request ${walletLabel(previewWallet)} on this number.`
-            : "MTN numbers start with 67, 68, or 650–654. Orange numbers start with 69 or 655–659."}
-      </p>
+      {method === "momo" ? (
+        <>
+          <label htmlFor="momo-phone" className="mt-6 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Mobile money number
+          </label>
+          <div className="mt-1.5 flex overflow-hidden rounded-xl border border-[color:var(--border)] bg-white focus-within:border-[#0070F8] focus-within:ring-2 focus-within:ring-[#0070F8]/20 dark:border-slate-700 dark:bg-slate-950">
+            <span className="flex items-center border-r border-[color:var(--border)] px-3 text-sm font-semibold text-slate-500 dark:border-slate-700">
+              +237
+            </span>
+            <input
+              id="momo-phone"
+              name="phone"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="6XX XX XX XX"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              className="h-12 w-full bg-transparent px-3 text-base text-slate-900 outline-none dark:text-white"
+            />
+          </div>
+          <p className="mt-2 text-xs leading-5 text-slate-400">
+            {previewWallet
+              ? `We’ll request ${walletLabel(previewWallet)} on this number.`
+              : "MTN numbers start with 67, 68, or 650–654. Orange numbers start with 69 or 655–659."}
+          </p>
+        </>
+      ) : null}
 
       {testMode && method === "momo" ? (
         <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-          Sandbox mode — no real money moves. Success: 670000000 (MTN) or
-          690000000 (Orange). Failure: 670000001 or 690000001.
+          CamerPay sandbox — the payment page can simulate success or failure. No real money moves.
         </p>
       ) : null}
 
@@ -317,7 +316,7 @@ export function CheckoutPanel({
       <p className="mt-3 text-center text-xs leading-5 text-slate-400">
         {method === "card"
           ? "You’ll get a receipt by email when the card payment is confirmed."
-          : "You’ll get an email when the prompt is sent, and another when the course unlocks."}
+          : "You’ll get an email when the course unlocks. CamerPay sends the PIN request to your phone after you continue."}
       </p>
     </form>
   );

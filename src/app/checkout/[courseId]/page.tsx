@@ -5,7 +5,7 @@ import { requireStudent } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
 import { CheckoutPanel } from "@/components/checkout-panel";
 import { courseStudyLabel } from "@/content/ai-foundations-module-1";
-import { activeFapshiEnvironment } from "@/lib/fapshi/client";
+import { camerpayEnvironment } from "@/lib/camerpay/client";
 import { classifyWallet } from "@/lib/fapshi/phone";
 import { courseAmountXaf } from "@/lib/currency";
 import { syncPaymentById } from "@/lib/payments/sync";
@@ -117,7 +117,11 @@ export default async function CheckoutPage({
           method: isCard ? ("card" as const) : ("momo" as const),
           message:
             payment.status === "failed"
-              ? "The last payment was not approved. You can send a new prompt."
+              ? isCard
+                ? payment.notes && payment.notes.length <= 180
+                  ? payment.notes
+                  : "The last card payment was not approved. You can try again."
+                : "The last payment was not approved. You can try again."
               : payment.status === "expired"
                 ? "The last payment link expired. Start a new payment."
                 : null,
@@ -161,8 +165,8 @@ export default async function CheckoutPage({
             </p>
             <p className="text-sm leading-6 text-slate-500">
               Pay with MTN or Orange Money in Cameroon, or with Visa and Mastercard
-              from anywhere. The course unlocks when the payment is confirmed, and
-              we email your receipt.
+              from anywhere. Both open on CamerPay, and the course unlocks when the
+              payment is confirmed.
             </p>
           </div>
         </section>
@@ -171,7 +175,7 @@ export default async function CheckoutPage({
           courseId={courseId}
           courseTitle={course.title}
           amountXaf={amountXaf}
-          testMode={activeFapshiEnvironment() === "sandbox"}
+          testMode={camerpayEnvironment() === "sandbox"}
           initial={initial}
         />
       </div>

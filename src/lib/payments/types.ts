@@ -47,7 +47,7 @@ export type StartPaymentResult =
       checkoutUrl: string | null;
       amountXaf: number;
       phone: string;
-      wallet: Wallet;
+      wallet: Wallet | null;
       method?: "card" | "momo";
       testMode: boolean;
     }

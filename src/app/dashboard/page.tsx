@@ -259,7 +259,7 @@ export default async function StudentDashboardPage() {
                     {formatXaf(payment.amount_xaf)}
                   </span>
                   <span className="font-semibold text-[#0070F8]">
-                    Approve on your phone
+                    Continue payment
                   </span>
                 </Link>
               );

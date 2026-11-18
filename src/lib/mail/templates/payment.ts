@@ -54,35 +54,36 @@ export function buildPaymentRequestedEmail(input: PaymentMailContext) {
 
   const text = `${hello}
 
-We sent a ${network} payment request for ${input.courseTitle}.
+Continue the ${network} payment for ${input.courseTitle} on CamerPay.
 
 Amount: ${amount}
 ${phone ? `Phone: ${phone}\n` : ""}${input.transId ? `Reference: ${input.transId}\n` : ""}
-Open the prompt on your phone and approve it with your Mobile Money PIN. Access to the course unlocks as soon as the payment succeeds.
+Confirm the payment, then approve the PIN prompt on your phone. Orange Money sends that prompt directly by USSD. MTN sends a MoMo notification. The course unlocks as soon as the payment succeeds.
 
-If you did not start this payment, you can ignore the prompt.
+If you did not start this payment, you can ignore it.
 
 — Promptstack Classroom
 support@promptstackclassroom.com`;
 
   const html = renderEmail({
     title: subject,
-    preheader: `Approve the ${network} prompt for ${amount}.`,
+    preheader: `Continue the ${network} payment for ${amount}.`,
     bodyHtml: `
       <p style="margin:0 0 12px;font-size:16px;line-height:1.5;color:#001C4C;">${escapeHtml(hello)}</p>
       <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#475569;">
-        A <strong style="color:#001C4C;">${escapeHtml(network)}</strong> request is waiting on your phone for
-        <strong style="color:#001C4C;">${escapeHtml(input.courseTitle)}</strong>.
-        Approve it with your PIN and the course unlocks automatically.
+        Your <strong style="color:#001C4C;">${escapeHtml(network)}</strong> payment for
+        <strong style="color:#001C4C;">${escapeHtml(input.courseTitle)}</strong> is ready on CamerPay.
+        After you confirm, approve the PIN prompt on your phone. The course unlocks automatically.
       </p>
       ${emailDetailTable([
         { label: "Amount", value: amount },
-        ...(phone ? [{ label: "Sent to", value: phone }] : []),
+        ...(phone ? [{ label: "Phone", value: phone }] : []),
         { label: "Network", value: network },
         ...(input.transId ? [{ label: "Reference", value: input.transId }] : []),
       ])}
+      ${checkoutHref(input.courseId) ? emailButton(checkoutHref(input.courseId), "Continue payment") : ""}
       <p style="margin:20px 0 0;font-size:13px;line-height:1.6;color:#94a3b8;">
-        If you did not start this payment, ignore the prompt. Nothing is charged until you approve it.
+        If you did not start this payment, ignore it. Nothing is charged until you approve the prompt.
       </p>
     `,
   });
@@ -196,7 +197,7 @@ Student: ${buyer}
 Email: ${input.email || "—"}
 Course: ${input.courseTitle}
 Amount: ${amount}
-Revenue after Fapshi fee: ${revenue}
+Net amount: ${revenue}
 Phone: ${input.phone ? formatCameroonPhone(input.phone) : "—"}
 Network: ${walletLabel(input.wallet)}
 Reference: ${input.transId || "—"}
@@ -219,7 +220,7 @@ The student has been enrolled automatically.`;
         { label: "Student", value: buyer },
         { label: "Email", value: input.email || "—" },
         { label: "Amount", value: amount },
-        { label: "Your revenue", value: revenue },
+        { label: "Net amount", value: revenue },
         { label: "Phone", value: input.phone ? formatCameroonPhone(input.phone) : "—" },
         { label: "Network", value: walletLabel(input.wallet) },
         { label: "Reference", value: input.transId || "—" },
@@ -234,7 +235,7 @@ The student has been enrolled automatically.`;
 
 export function buildPaymentMismatchEmail(input: PaymentMailContext & { detail: string }) {
   const subject = `Payment needs review · ${input.courseTitle}`;
-  const text = `A Fapshi notification did not match the order, so the student was not enrolled.
+  const text = `A payment notification did not match the order, so the student was not enrolled.
 
 Course: ${input.courseTitle}
 Expected amount: ${formatXaf(input.amountXaf)}
@@ -242,7 +243,7 @@ Student: ${input.email || "—"}
 Reference: ${input.transId || "—"}
 Detail: ${input.detail}
 
-Confirm the transaction in the Fapshi dashboard before enrolling anyone by hand.`;
+Confirm the transaction with the payment provider before enrolling anyone by hand.`;
 
   const html = renderEmail({
     title: subject,
@@ -250,7 +251,7 @@ Confirm the transaction in the Fapshi dashboard before enrolling anyone by hand.
     bodyHtml: `
       <p style="margin:0 0 12px;font-size:16px;line-height:1.5;color:#001C4C;">A payment needs a manual check.</p>
       <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#475569;">
-        Fapshi reported a result that does not match this order. The student was not enrolled.
+        The payment provider reported a result that does not match this order. The student was not enrolled.
       </p>
       ${emailDetailTable([
         { label: "Course", value: input.courseTitle },

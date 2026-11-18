@@ -1,10 +1,12 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
-  elyonStateToPaymentStatus,
-  getElyonTransaction,
-  type ElyonTransaction,
-} from "@/lib/elyon/client";
+  camerPayStatusToPaymentStatus,
+  camerpayEnvironment,
+  getCamerPayTransaction,
+  isCamerPayTransactionId,
+  type CamerPayTransaction,
+} from "@/lib/camerpay/client";
 import {
   getPaymentStatus,
   type FapshiTransaction,
@@ -52,11 +54,19 @@ export function mapFapshiStatus(status: string | null | undefined): PaymentStatu
 
 export function publicPaymentView(payment: PaymentRecord): PublicPayment {
   let message: string | null = null;
-  if (payment.notes?.toLowerCase().includes("does not match")) {
-    message =
-      "We're confirming this payment with support before unlocking the course.";
+  if (
+    payment.status !== "failed" &&
+    payment.notes &&
+    (payment.notes.toLowerCase().includes("does not match") || payment.notes.startsWith("CamerPay"))
+  ) {
+    message = "We're confirming this payment with support before unlocking the course.";
   } else if (payment.status === "failed") {
-    message = "The payment was not approved. You can try again with the same number.";
+    message =
+      payment.medium === "card" && payment.notes && payment.notes.length <= 180
+        ? payment.notes
+        : payment.medium === "card"
+          ? "The card payment was not approved. You can try again."
+          : "The payment was not approved. You can try again with the same number.";
   } else if (payment.status === "expired") {
     message = "This payment link expired. Start a new payment to continue.";
   }
@@ -208,12 +218,12 @@ function patchFromRemote(remote: FapshiTransaction, status: PaymentStatus) {
 
 async function syncCardPayment(payment: PaymentRecord, revalidate: boolean) {
   if (!payment.trans_id) return { payment };
-  const remoteResult = await getElyonTransaction(payment.trans_id);
+  const remoteResult = await getCamerPayTransaction(payment.trans_id);
   if (!remoteResult.ok) {
     return { payment, error: remoteResult.message };
   }
   const remote = remoteResult.data;
-  const nextStatus = elyonStateToPaymentStatus(remote.state);
+  const nextStatus = camerPayStatusToPaymentStatus(remote.status);
   const admin = createAdminClient();
 
   if (nextStatus === "successful") {
@@ -242,10 +252,10 @@ async function syncCardPayment(payment: PaymentRecord, revalidate: boolean) {
         status: "successful",
         last_checked_at: now,
         updated_at: now,
-        confirmed_at: remote.validation_date || now,
-        financial_trans_id: remote.PSPid || remote.uuid || payment.financial_trans_id,
-        phone: remote.payer_phone_number || payment.phone,
-        revenue_xaf: cardRevenue(remote) ?? payment.revenue_xaf,
+        confirmed_at: remote.paidAt || now,
+        financial_trans_id: payment.financial_trans_id || "stripe",
+        phone: remote.phone || payment.phone,
+        environment: remote.isSandbox === true ? "sandbox" : payment.environment,
       })
       .eq("id", payment.id)
       .neq("status", "successful")
@@ -259,14 +269,23 @@ async function syncCardPayment(payment: PaymentRecord, revalidate: boolean) {
 
   if (nextStatus === "failed") {
     const now = new Date().toISOString();
+    const note =
+      remote.status.toLowerCase() === "refunded"
+        ? "CamerPay refunded this payment."
+        : payment.notes;
     const { data: updated } = await admin
       .from("payments")
-      .update({ status: "failed", last_checked_at: now, updated_at: now })
+      .update({
+        status: "failed",
+        notes: note,
+        last_checked_at: now,
+        updated_at: now,
+      })
       .eq("id", payment.id)
       .in("status", ["created", "pending", "failed"])
       .select("*")
       .maybeSingle();
-    if (updated && (await claim(payment.id, "failure_notified_at"))) {
+    if (updated && remote.status.toLowerCase() !== "refunded" && (await claim(payment.id, "failure_notified_at"))) {
       try {
         await sendPaymentFailedMail({ ...(await mailContext(updated as PaymentRecord)), expired: false });
       } catch (error) {
@@ -287,22 +306,30 @@ async function syncCardPayment(payment: PaymentRecord, revalidate: boolean) {
   return { payment: fresh };
 }
 
-function cardMismatch(payment: PaymentRecord, remote: ElyonTransaction) {
-  if (typeof remote.amount === "number" && Number(remote.amount) !== Number(payment.amount_xaf)) {
-    return `ElyonPay collected ${remote.amount} XAF, but this order is ${payment.amount_xaf} XAF.`;
-  }
-  if (remote.externalId && remote.externalId !== payment.external_id) {
-    return "ElyonPay returned a different order id than the one we created.";
-  }
-  return null;
+function expectedCamerPayMethod(payment: PaymentRecord) {
+  if (payment.medium === "card") return "stripe";
+  if ((payment.medium || "").toLowerCase().includes("orange")) return "orange_money";
+  return "mtn_momo";
 }
 
-function cardRevenue(remote: ElyonTransaction) {
-  if (typeof remote.amount !== "number") return null;
-  const fees = [remote.commission_operateur, remote.commission_marchand, remote.commission_pays]
-    .filter((value): value is number => typeof value === "number")
-    .reduce((sum, value) => sum + value, 0);
-  return Math.max(0, Math.round(remote.amount - fees));
+function cardMismatch(payment: PaymentRecord, remote: CamerPayTransaction) {
+  if (remote.isSandbox === true && payment.environment !== "sandbox" && camerpayEnvironment() !== "sandbox") {
+    return "CamerPay marked this payment as a test, so the course stays locked.";
+  }
+  const expected = expectedCamerPayMethod(payment);
+  if (remote.paymentMethod && remote.paymentMethod !== expected) {
+    return "CamerPay confirmed a different payment method than the one this checkout started.";
+  }
+  if (remote.currency && remote.currency.toUpperCase() !== "XAF") {
+    return `CamerPay collected ${remote.currency}, but this order is priced in FCFA.`;
+  }
+  if (remote.amount == null || Number(remote.amount) !== Number(payment.amount_xaf)) {
+    return `CamerPay collected ${remote.amount ?? "an unknown amount"} XAF, but this order is ${payment.amount_xaf} XAF.`;
+  }
+  if (remote.invoiceId && remote.invoiceId !== payment.external_id) {
+    return "CamerPay returned a different order id than the one we created.";
+  }
+  return null;
 }
 
 export async function syncPaymentById(
@@ -319,6 +346,24 @@ export async function syncPaymentById(
   const revalidate = options?.revalidate !== false;
 
   if (payment.status === "successful") {
+    if (isCamerPayTransactionId(payment.trans_id) && options?.force && payment.trans_id) {
+      const remoteResult = await getCamerPayTransaction(payment.trans_id);
+      if (remoteResult.ok && remoteResult.data.status.toLowerCase() === "refunded") {
+        const detail = "CamerPay refunded this payment after the course was unlocked.";
+        const now = new Date().toISOString();
+        await createAdminClient()
+          .from("payments")
+          .update({ notes: detail, updated_at: now, last_checked_at: now })
+          .eq("id", payment.id);
+        if (await claim(payment.id, "alerted_at")) {
+          try {
+            await sendPaymentMismatchMail({ ...(await mailContext(payment)), detail });
+          } catch (error) {
+            console.error("Card refund notice failed", error);
+          }
+        }
+      }
+    }
     await notifySuccess(payment, revalidate);
     const fresh = (await loadPayment(payment.id)) || payment;
     return { payment: fresh };
@@ -340,7 +385,7 @@ export async function syncPaymentById(
     return { payment };
   }
 
-  if (payment.medium === "card") {
+  if (payment.medium === "card" || isCamerPayTransactionId(payment.trans_id)) {
     return syncCardPayment(payment, revalidate);
   }
 

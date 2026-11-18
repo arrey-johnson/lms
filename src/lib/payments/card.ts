@@ -1,22 +1,29 @@
 import { randomUUID } from "crypto";
 import { checkoutReturnUrl, getAppUrl } from "@/lib/app-url";
+import { createCardCheckout, camerpayConfigured, camerpayEnvironment } from "@/lib/camerpay/client";
 import { courseAmountXaf } from "@/lib/currency";
-import { createCardCheckout, elyonConfigured, elyonEnvironment } from "@/lib/elyon/client";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { PaymentRecord, StartPaymentResult } from "@/lib/payments/types";
 
 const NOT_READY = "Card payments are not ready yet. Try mobile money, or check back shortly.";
 
-function internationalPhone(input: string) {
-  const digits = input.replace(/\D/g, "");
-  if (digits.length < 8 || digits.length > 15) return null;
-  return `+${digits}`;
+function cardPhone(input: string) {
+  const trimmed = input.trim();
+  if (!trimmed) return { ok: true as const, phone: null };
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length < 8 || digits.length > 15) {
+    return {
+      ok: false as const,
+      error: "Enter a phone number with the country code, or leave it blank.",
+    };
+  }
+  return { ok: true as const, phone: `+${digits}` };
 }
 
 function friendly(message: string) {
   const clean = message.replace(/\s+/g, " ").trim();
   if (!clean || clean.length > 180) {
-    return "ElyonPay could not start the card payment. Check the phone number and try again.";
+    return "CamerPay could not start the card payment. Try again in a moment.";
   }
   return clean;
 }
@@ -28,14 +35,9 @@ export async function startCardCheckout(input: {
   fullName: string | null;
   email: string | null;
 }): Promise<StartPaymentResult> {
-  const phone = internationalPhone(input.phone);
-  if (!phone) {
-    return {
-      ok: false,
-      error: "Enter a phone number with the country code, like +237 or +1.",
-    };
-  }
-  if (!elyonConfigured()) return { ok: false, error: NOT_READY };
+  const phone = cardPhone(input.phone);
+  if (!phone.ok) return { ok: false, error: phone.error };
+  if (!camerpayConfigured()) return { ok: false, error: NOT_READY };
 
   const admin = createAdminClient();
   const [{ data: course, error: courseError }, { data: enrollment }] = await Promise.all([
@@ -53,7 +55,7 @@ export async function startCardCheckout(input: {
     return { ok: false, error: "You already own this course.", alreadyEnrolled: true };
   }
 
-  const environment = elyonEnvironment();
+  const environment = camerpayEnvironment();
   const amountXaf = courseAmountXaf(course.price_cents);
   const { data: openRow } = await admin
     .from("payments")
@@ -79,8 +81,8 @@ export async function startCardCheckout(input: {
         mode: "link",
         checkoutUrl: open.checkout_url,
         amountXaf: open.amount_xaf,
-        phone: open.phone || phone,
-        wallet: "mtn",
+        phone: open.phone || phone.phone || "",
+        wallet: null,
         method: "card",
         testMode: environment === "sandbox",
       };
@@ -88,6 +90,13 @@ export async function startCardCheckout(input: {
   }
 
   const id = open?.id || randomUUID();
+  const returnUrl = checkoutReturnUrl(input.courseId, id);
+  const origin = getAppUrl();
+  const callbackUrl = origin.startsWith("https://") ? `${origin}/api/payments/camerpay` : "";
+  if (!returnUrl || !callbackUrl) {
+    return { ok: false, error: "Card checkout needs an https site address before it can start." };
+  }
+
   const now = new Date().toISOString();
   if (!open) {
     const { error: insertError } = await admin.from("payments").insert({
@@ -99,7 +108,7 @@ export async function startCardCheckout(input: {
       status: "created",
       environment,
       external_id: id,
-      phone,
+      phone: phone.phone,
       medium: "card",
       payer_name: input.fullName,
       email: input.email,
@@ -109,22 +118,14 @@ export async function startCardCheckout(input: {
     if (insertError) return { ok: false, error: insertError.message };
   }
 
-  const returnUrl = checkoutReturnUrl(input.courseId, id);
-  if (!returnUrl) {
-    return { ok: false, error: "Card checkout needs an https site address before it can start." };
-  }
-  const origin = getAppUrl();
   const charged = await createCardCheckout({
     amount: amountXaf,
-    phone,
+    phone: phone.phone,
     email: input.email,
     name: input.fullName,
-    userId: input.userId,
-    externalId: id,
-    description: `Promptstack Classroom — ${course.title}`,
-    successUrl: returnUrl,
-    errorUrl: returnUrl,
-    webhookUrl: origin.startsWith("https://") ? `${origin}/api/payments/elyon` : undefined,
+    invoiceId: id,
+    callbackUrl,
+    returnUrl,
   });
 
   if (!charged.ok) {
@@ -142,9 +143,9 @@ export async function startCardCheckout(input: {
       trans_id: charged.data.uuid,
       status: "pending",
       checkout_url: charged.data.url,
-      phone,
+      phone: phone.phone,
       medium: "card",
-      financial_trans_id: charged.data.provider,
+      financial_trans_id: "stripe",
       updated_at: new Date().toISOString(),
       last_checked_at: null,
     })
@@ -164,8 +165,8 @@ export async function startCardCheckout(input: {
     mode: "link",
     checkoutUrl: charged.data.url,
     amountXaf,
-    phone,
-    wallet: "mtn",
+    phone: phone.phone || "",
+    wallet: null,
     method: "card",
     testMode: environment === "sandbox",
   };
