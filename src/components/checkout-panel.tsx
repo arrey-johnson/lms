@@ -174,16 +174,18 @@ export function CheckoutPanel({
           </span>
           <div>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-              {active.method === "card" ? `Pay ${amount} by card` : `Pay ${amount} with ${network}`}
+              {active.method === "card"
+                ? `Pay ${amount} by card`
+                : active.mode === "link"
+                  ? `Pay ${amount} with ${network}`
+                  : `Approve ${amount} on your phone`}
             </h2>
             <p className="mt-1 text-sm leading-6 text-slate-500">
               {active.method === "card"
-                ? "Finish the Visa or Mastercard payment on CamerPay. We’ll unlock the course as soon as it is confirmed."
-                : active.checkoutUrl?.includes("fapshi.com")
+                ? "Finish the Visa or Mastercard payment on CamerPay’s secure page. Your bank confirms the card there. We’ll unlock the course as soon as it is confirmed."
+                : active.mode === "link"
                   ? "Finish the payment on Fapshi’s secure page. We’ll detect it and unlock the course."
-                  : active.wallet === "orange"
-                    ? `Continue on CamerPay. Orange Money then sends a direct USSD prompt to ${formatCameroonPhone(active.phone)}. Enter your PIN on the phone.`
-                    : `Continue on CamerPay. MTN then sends a MoMo notification to ${formatCameroonPhone(active.phone)}. Approve it with your PIN.`}
+                  : `A ${network} prompt was sent to ${formatCameroonPhone(active.phone)}. Enter your PIN to approve it.`}
             </p>
           </div>
         </div>
@@ -258,7 +260,7 @@ export function CheckoutPanel({
         </div>
       ) : (
         <p className="mt-4 text-sm leading-6 text-slate-500">
-          Visa and Mastercard, including cards issued outside Cameroon. You’ll enter the card on CamerPay’s secure page. The price stays in FCFA.
+          Visa and Mastercard, including cards issued outside Cameroon. The card number is entered on CamerPay’s secure page, then your bank confirms it. The price stays in FCFA, and we never see the card number.
         </p>
       )}
 
@@ -292,7 +294,7 @@ export function CheckoutPanel({
 
       {testMode && method === "momo" ? (
         <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-          CamerPay sandbox — the payment page can simulate success or failure. No real money moves.
+          Sandbox mode — no real money moves. Success: 670000000 (MTN) or 690000000 (Orange). Failure: 670000001 or 690000001.
         </p>
       ) : null}
 
@@ -318,7 +320,7 @@ export function CheckoutPanel({
       <p className="mt-3 text-center text-xs leading-5 text-slate-400">
         {method === "card"
           ? "You’ll get a receipt by email when the card payment is confirmed."
-          : "You’ll get an email when the course unlocks. CamerPay sends the PIN request to your phone after you continue."}
+          : "You’ll get an email when the prompt is sent, and another when the course unlocks."}
       </p>
     </form>
   );

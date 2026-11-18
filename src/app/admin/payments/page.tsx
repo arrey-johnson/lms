@@ -2,7 +2,7 @@ import { requireAdmin } from "@/lib/auth";
 import { getAppUrl } from "@/lib/app-url";
 import { formatXaf } from "@/lib/currency";
 import { camerpayCallbackSecret, camerpayEnvironment } from "@/lib/camerpay/client";
-import { fapshiWebhookSecret } from "@/lib/fapshi/client";
+import { activeFapshiEnvironment, fapshiWebhookSecret } from "@/lib/fapshi/client";
 import { formatCameroonPhone, mediumLabel } from "@/lib/fapshi/phone";
 import { isMissingPaymentsTable } from "@/lib/payments/sync";
 import type { PaymentRecord, PaymentStatus } from "@/lib/payments/types";
@@ -52,12 +52,13 @@ export default async function AdminPaymentsPage() {
           Payments
         </h1>
         <p className="mt-1 text-slate-500">
-          Mobile money and cards are collected through CamerPay. A confirmed payment enrolls the student. Payments that already started on Fapshi can still finish there.
+          Mobile money is collected through Fapshi. Cards are collected through CamerPay. A confirmed payment enrolls the student.
         </p>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Info label="Mobile money" value={camerpayEnvironment() === "live" ? "CamerPay live" : "CamerPay sandbox"} />
+        <Info label="Mobile money" value={activeFapshiEnvironment() === "live" ? "Fapshi live" : "Fapshi sandbox"} />
+        <Info label="Cards" value={camerpayEnvironment() === "live" ? "CamerPay live" : "CamerPay sandbox"} />
         <Info
           label="Fapshi secret"
           value={fapshiWebhookSecret() ? "Configured" : "Missing"}

@@ -259,7 +259,9 @@ export default async function StudentDashboardPage() {
                     {formatXaf(payment.amount_xaf)}
                   </span>
                   <span className="font-semibold text-[#0070F8]">
-                    Continue payment
+                    {payment.medium === "card" || payment.checkout_url
+                      ? "Continue payment"
+                      : "Approve on your phone"}
                   </span>
                 </Link>
               );

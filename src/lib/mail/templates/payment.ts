@@ -54,36 +54,35 @@ export function buildPaymentRequestedEmail(input: PaymentMailContext) {
 
   const text = `${hello}
 
-Continue the ${network} payment for ${input.courseTitle}.
+We sent a ${network} payment request for ${input.courseTitle}.
 
 Amount: ${amount}
 ${phone ? `Phone: ${phone}\n` : ""}${input.transId ? `Reference: ${input.transId}\n` : ""}
-Open the secure payment page, then approve the PIN prompt on your phone. The course unlocks as soon as the payment succeeds.
+Open the prompt on your phone and approve it with your Mobile Money PIN. Access to the course unlocks as soon as the payment succeeds.
 
-If you did not start this payment, you can ignore it.
+If you did not start this payment, you can ignore the prompt.
 
 — Promptstack Classroom
 support@promptstackclassroom.com`;
 
   const html = renderEmail({
     title: subject,
-    preheader: `Continue the ${network} payment for ${amount}.`,
+    preheader: `Approve the ${network} prompt for ${amount}.`,
     bodyHtml: `
       <p style="margin:0 0 12px;font-size:16px;line-height:1.5;color:#001C4C;">${escapeHtml(hello)}</p>
       <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#475569;">
-        Your <strong style="color:#001C4C;">${escapeHtml(network)}</strong> payment for
-        <strong style="color:#001C4C;">${escapeHtml(input.courseTitle)}</strong> is ready.
-        Continue to the secure payment page, then approve the PIN prompt on your phone. The course unlocks automatically.
+        A <strong style="color:#001C4C;">${escapeHtml(network)}</strong> request is waiting on your phone for
+        <strong style="color:#001C4C;">${escapeHtml(input.courseTitle)}</strong>.
+        Approve it with your PIN and the course unlocks automatically.
       </p>
       ${emailDetailTable([
         { label: "Amount", value: amount },
-        ...(phone ? [{ label: "Phone", value: phone }] : []),
+        ...(phone ? [{ label: "Sent to", value: phone }] : []),
         { label: "Network", value: network },
         ...(input.transId ? [{ label: "Reference", value: input.transId }] : []),
       ])}
-      ${checkoutHref(input.courseId) ? emailButton(checkoutHref(input.courseId), "Continue payment") : ""}
       <p style="margin:20px 0 0;font-size:13px;line-height:1.6;color:#94a3b8;">
-        If you did not start this payment, ignore it. Nothing is charged until you approve the prompt.
+        If you did not start this payment, ignore the prompt. Nothing is charged until you approve it.
       </p>
     `,
   });

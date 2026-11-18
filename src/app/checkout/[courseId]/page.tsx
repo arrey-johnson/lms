@@ -5,7 +5,7 @@ import { requireStudent } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
 import { CheckoutPanel } from "@/components/checkout-panel";
 import { courseStudyLabel } from "@/content/ai-foundations-module-1";
-import { camerpayEnvironment } from "@/lib/camerpay/client";
+import { activeFapshiEnvironment } from "@/lib/fapshi/client";
 import { classifyWallet } from "@/lib/fapshi/phone";
 import { courseAmountXaf } from "@/lib/currency";
 import { syncPaymentById } from "@/lib/payments/sync";
@@ -164,9 +164,8 @@ export default async function CheckoutPage({
               {courseStudyLabel(course.curriculum_slug, count || 0)}
             </p>
             <p className="text-sm leading-6 text-slate-500">
-              Pay with MTN or Orange Money in Cameroon, or with Visa and Mastercard
-              from anywhere. Both open on CamerPay, and the course unlocks when the
-              payment is confirmed.
+              Pay with MTN or Orange Money through Fapshi, or with Visa and Mastercard
+              through CamerPay. The course unlocks when the payment is confirmed.
             </p>
           </div>
         </section>
@@ -175,7 +174,7 @@ export default async function CheckoutPage({
           courseId={courseId}
           courseTitle={course.title}
           amountXaf={amountXaf}
-          testMode={camerpayEnvironment() === "sandbox"}
+          testMode={activeFapshiEnvironment() === "sandbox"}
           initial={initial}
         />
       </div>

@@ -529,7 +529,7 @@ export async function listOpenPayments(userId: string) {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("payments")
-    .select("id, course_id, status, amount_xaf, phone, created_at")
+    .select("id, course_id, status, amount_xaf, phone, medium, checkout_url, created_at")
     .eq("user_id", userId)
     .in("status", ["created", "pending"])
     .order("created_at", { ascending: false })
